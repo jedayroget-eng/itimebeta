@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cedro Aventuras - MASTER V19</title>
+    <style>
+        :root { --primary: #2d5a27; --danger: #e74c3c; --bg: #f4f6f8; --insta: #8e44ad; --gold: #d4af37; --dark: #2c3e50; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; background: var(--bg); margin: 0; padding-bottom: 60px; color: #333; }
+
+        /* Telas de Acesso */
+        #login-screen, #register-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #1e3c1a, #2d5a27); position: fixed; width: 100%; z-index: 2000; }
+        .login-box { background: white; padding: 30px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+
+        .btn-main { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
+        .btn-main:active { transform: scale(0.98); }
+
+        /* App Principal */
+        #app-screen { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
+        header { background: white; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .panel { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+
+        /* Painel Master */
+        #master-panel { display: none; border: 2px solid var(--gold); background: #fffcf5; }
+        .master-badge { background: var(--gold); color: #5a4a00; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .global-item { background: #333; color: #0f0; padding: 8px; border-radius: 5px; margin-bottom: 5px; font-family: monospace; font-size: 12px; border-left: 4px solid #0f0; }
+
+        /* Botões de Frota (Cores Específicas) */
+        .frota-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .btn-frota { padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .cor-branco { background: #ffffff; color: #333; border: 2px solid #ddd; }
+        .cor-vermelho { background: #c0392b; color: white; }
+        .cor-amarelo { background: #f1c40f; color: #333; }
+        .cor-rosa { background: #e91e63; color: white; }
+        .cor-azul { background: #2980b9; color: white; }
+        .cor-verde { background: #27ae60; color: white; }
+        .cor-preto { background: #333; color: white; }
+        .cor-padrao { background: var(--primary); color: white; }
+
+        /* Cards */
+        .card { background: white; padding: 15px; border-radius: 15px; border-left: 8px solid var(--primary); margin-bottom: 15px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card.paused { background: #fffdf0; border-left-color: #f1c40f; }
+        .timer-big { font-size: 48px; font-weight: 800; text-align: center; color: #333; margin: 5px 0; letter-spacing: -1px; }
+
+        .card-controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 10px; }
+        .btn-ctrl { padding: 10px 0; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; }
+
+        /* TABELA DE RELATÓRIO ORGANIZADA */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        thead { background-color: #f0f0f0; border-bottom: 2px solid #ddd; }
+        th { padding: 12px 8px; text-align: left; color: #555; font-weight: bold; text-transform: uppercase; font-size: 11px; }
+        td { padding: 12px 8px; border-bottom: 1px solid #eee; color: #333; }
+        tr:last-child td { border-bottom: none; }
+
+        .valor-cell { font-weight: bold; color: var(--primary); }
+        .status-cell { font-size: 11px; padding: 4px 8px; border-radius: 12px; display: inline-block; cursor: pointer; }
+        .st-pago { background: #d4edda; color: #155724; }
+        .st-pend { background: #f8d7da; color: #721c24; }
+
+        .total-box { background: var(--dark); color: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; margin-bottom: 15px; }
+
+        .assinatura-badge { font-size: 11px; background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 20px; border: 1px solid #c8e6c9; margin-top: 4px; display: inline-block; }
+        .assinatura-alert { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-box">
+        <h2 style="color: var(--primary); margin:0 0 15px 0">🌲 Cedro Aventuras</h2>
+        <select id="login-cidade">
+            <option value="">Selecione sua Cidade</option>
+            <option>Cedro</option><option>Varzea Alegre</option><option>Icó</option><option>Iguatu</option>
+            <option>Lavras da Mangabeira</option><option>Fortaleza</option>
+        </select>
+        <input type="text" id="user" placeholder="Usuário">
+        <input type="password" id="pass" placeholder="Senha">
+        <button class="btn-main" onclick="window.tentarLogin()">ACESSAR SISTEMA</button>
+        <div style="margin-top:20px; font-size:13px; color:white; opacity:0.8; cursor:pointer" onclick="window.switchScreen('register')">Solicitar Cadastro</div>
+    </div>
+</div>
+
+<div id="register-screen" style="display: none;">
+    <div class="login-box">
+        <h3 style="margin:0 0 15px 0">📝 Novo Parceiro</h3>
+        <input type="text" id="reg-nome" placeholder="Nome Completo">
+        <input type="password" id="reg-pass" placeholder="Crie uma Senha">
+        <select id="reg-cidade"><option>Cedro</option><option>Iguatu</option><option>Icó</option><option>Varzea Alegre</option></select>
+        <input type="number" id="reg-preco" placeholder="Preço do Minuto (Ex: 1.00)">
+        <input type="text" id="reg-zap" placeholder="WhatsApp (DDD + Número)">
+        <textarea id="reg-frota" placeholder="Veículos (Ex: Carrinho Branco, Moto Vermelha)"></textarea>
+        <button class="btn-main" onclick="window.cadastrarUsuario()">ENVIAR SOLICITAÇÃO</button>
+        <button onclick="window.switchScreen('login')" style="margin-top:10px; background:transparent; border:none; color:white">Voltar</button>
+    </div>
+</div>
+
+<div id="app-screen">
+    <header>
+        <div>
+            <div id="op-nome" style="font-weight: 800; font-size:16px">Usuario</div>
+            <div id="op-assinatura" class="assinatura-badge">Verificando assinatura...</div>
+        </div>
+        <div style="text-align:right">
+            <div id="relogio" style="font-weight:bold; font-size:18px">00:00</div>
+            <div id="btn-master-toggle" style="display:none; cursor:pointer; font-size:12px; color:var(--gold)" onclick="window.toggleMasterPanel()">👑 PAINEL JEDAY</div>
+        </div>
+        <button onclick="location.reload()" style="margin-left:10px; border:none; background:#eee; padding:8px 12px; border-radius:6px">Sair</button>
+    </header>
+
+    <div id="master-panel" class="panel">
+        <h3 style="color:var(--gold); margin-top:0">👑 COMANDO GLOBAL</h3>
+        <div style="margin-bottom:15px">
+            <div style="font-size:12px; font-weight:bold; color:#666; margin-bottom:5px">🌍 BRINQUEDOS RODANDO AGORA:</div>
+            <div id="global-monitor">Carregando...</div>
+        </div>
+        <hr style="border:0; border-top:1px solid #ddd">
+        <div style="margin-top:15px">
+            <div style="font-size:12px; font-weight:bold; color:#666; margin-bottom:5px">👥 GESTÃO DE PARCEIROS:</div>
+            <div id="lista-usuarios-master"></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
+            <input type="text" id="nome-crianca" placeholder="Nome da Criança">
+            <input type="text" id="nome-responsavel" placeholder="Responsável">
+        </div>
+
+        <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:15px">
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(5)">5m</button>
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(10)">10m</button>
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(15)">15m</button>
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(20)">20m</button>
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(30)">30m</button>
+            <button class="btn-ctrl" style="background:#2c3e50; flex:1" onclick="window.setQuickTime(9999)">LIVRE</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px">
+            <span>Tempo:</span>
+            <input type="number" id="tempo-padrao" value="10" style="width:60px; text-align:center; font-weight:bold">
+            <span style="font-size:12px; color:#666">minutos</span>
+        </div>
+
+        <div class="frota-grid" id="frota-dinamica">
+            </div>
+    </div>
+
+    <div id="container-cards"></div>
+
+    <div class="panel">
+        <div class="total-box">
+            <span>💰 FATURAMENTO</span>
+            <span id="total-valor">R$ 0,00</span>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap">
+            <input type="date" id="filtro-data" style="margin:0; flex:1" onchange="window.carregarHistorico()">
+            <select id="filtro-master-user" style="display:none; margin:0; flex:1" onchange="window.carregarHistorico()"></select>
+            <button id="btn-limpar-hist" onclick="window.limparHistorico()" style="display:none; background:var(--danger); color:white; border:none; border-radius:6px; padding:0 15px; font-weight:bold">🗑 LIMPAR</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Veículo</th>
+                        <th style="text-align:center">Tempo</th>
+                        <th style="text-align:right">Valor</th>
+                        <th style="text-align:center">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="corpo-historico">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDocs, where, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD3WIeOM21IkcjytZ9-We7vJjOV-dYq2IA",
+        authDomain: "cedro-aventuras.firebaseapp.com",
+        projectId: "cedro-aventuras",
+        storageBucket: "cedro-aventuras.firebasestorage.app",
+        messagingSenderId: "750741113990",
+        appId: "1:750741113990:web:35783abcde7f8eb6f6d507"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let USER_DATA = null;
+
+    // --- LOGIN ---
+    window.tentarLogin = async () => {
+        const cidade = document.getElementById('login-cidade').value;
+        const nome = document.getElementById('user').value;
+        const pass = document.getElementById('pass').value;
+
+        if(nome === "Jeday" && pass === "master77") {
+            loginSucesso({ 
+                nome: "Jeday", cidade: "Cedro", status: "ativo", isMaster: true, 
+                frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete", 
+                preco: 1, validade: 9999999999999 
+            });
+            return;
+        }
+
+        const q = query(collection(db, "usuarios"), where("nome", "==", nome), where("cidade", "==", cidade));
+        const snap = await getDocs(q);
+
+        if(snap.empty || snap.docs[0].data().pass !== pass) return alert("Dados incorretos.");
+
+        const dados = snap.docs[0].data();
+
+        if(dados.status !== "ativo") return alert("Aguarde a aprovação do Jeday.");
+
+        // Verificação de Assinatura
+        const agora = Date.now();
+        if(dados.validade && agora > dados.validade) {
+            return alert("SUA ASSINATURA EXPIROU! Entre em contato com Jeday para renovar.");
+        }
+
+        loginSucesso({...dados, id: snap.docs[0].id});
+    };
+
+    function loginSucesso(dados) {
+        USER_DATA = dados;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'block';
+        document.getElementById('op-nome').innerText = USER_DATA.nome;
+
+        // Exibir dias restantes
+        const agora = Date.now();
+        if(USER_DATA.isMaster) {
+            document.getElementById('op-assinatura').innerText = "👑 Acesso Vitalício";
+        } else {
+            const diasRestantes = Math.ceil((USER_DATA.validade - agora) / (1000 * 60 * 60 * 24));
+            const elAss = document.getElementById('op-assinatura');
+            elAss.innerText = `⏳ ${diasRestantes} dias restantes`;
+            if(diasRestantes <= 3) elAss.classList.add('assinatura-alert');
+        }
+
+        if(USER_DATA.isMaster) {
+            document.getElementById('btn-master-toggle').style.display = 'block';
+            document.getElementById('filtro-master-user').style.display = 'block';
+            document.getElementById('btn-limpar-hist').style.display = 'block';
+            iniciarMasterListeners();
+        }
+
+        montarFrota();
+        iniciarCards();
+        window.carregarHistorico();
+    }
+
+    // --- RENDERIZAÇÃO DA FROTA ---
+    function montarFrota() {
+        const div = document.getElementById('frota-dinamica');
+        div.innerHTML = "";
+        USER_DATA.frota.split(',').forEach(item => {
+            const nome = item.trim();
+            const corClass = descobrirCor(nome);
+            div.innerHTML += `<button class="btn-frota ${corClass}" onclick="window.iniciar('${nome}')">${nome}</button>`;
+        });
+    }
+
+    function descobrirCor(texto) {
+        const t = texto.toLowerCase();
+        if(t.includes('vermelh')) return 'cor-vermelho';
+        if(t.includes('branc')) return 'cor-branco';
+        if(t.includes('amarel')) return 'cor-amarelo';
+        if(t.includes('rosa')) return 'cor-rosa';
+        if(t.includes('azul')) return 'cor-azul';
+        if(t.includes('verd')) return 'cor-verde';
+        if(t.includes('pret')) return 'cor-preto';
+        return 'cor-padrao';
+    }
+
+    // --- LÓGICA DE CARDS ---
+    window.iniciar = async (veiculo) => {
+        const min = parseInt(document.getElementById('tempo-padrao').value);
+        const agora = Date.now();
+        await addDoc(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), {
+            veiculo, crianca: document.getElementById('nome-crianca').value || "Cliente",
+            timestamp: agora, fimTimestamp: agora + (min * 60000),
+            minutosContratados: min, pago: "Não", pausado: false, 
+            msRestantes: min * 60000, totalMsPausado: 0, precoBase: USER_DATA.preco, modalidadeLivre: min >= 9999
+        });
+        document.getElementById('nome-crianca').value = "";
+    };
+
+    function iniciarCards() {
+        onSnapshot(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), (snap) => {
+            const div = document.getElementById('container-cards');
+            const ativos = snap.docs.map(d => d.id);
+            document.querySelectorAll('.card').forEach(c => { if(!ativos.includes(c.id.replace('c-',''))) c.remove(); });
+
+            snap.docs.forEach(docSnap => {
+                const d = docSnap.data(), id = docSnap.id;
+                let el = document.getElementById(`c-${id}`);
+
+                if(!el) {
+                    div.insertAdjacentHTML('beforeend', `
+                        <div class="card" id="c-${id}">
+                            <div style="display:flex; justify-content:space-between">
+                                <div><b>${d.veiculo}</b><br><small>${d.crianca}</small></div>
+                                <button id="pg-${id}" onclick="window.pg('${id}')" style="border:none; border-radius:5px; font-weight:bold; cursor:pointer; height:30px"></button>
+                            </div>
+                            <div class="timer-big" id="t-${id}">00:00</div>
+                            <div class="card-controls">
+                                <button class="btn-ctrl" style="background:#e67e22" onclick="window.add('${id}',-1)">-1m</button>
+                                <button class="btn-ctrl" style="background:#27ae60" onclick="window.add('${id}',1)">+1m</button>
+                                <button class="btn-ctrl" style="background:#2980b9" id="ps-${id}" onclick="window.ps('${id}')">⏸</button>
+                                <button class="btn-ctrl" style="background:#c0392b" onclick="window.fim('${id}')">FIM</button>
+                            </div>
+                        </div>
+                    `);
+                    el = document.getElementById(`c-${id}`);
+                }
+
+                const btnPg = document.getElementById(`pg-${id}`);
+                btnPg.innerText = d.pago === 'Sim' ? '✅ PAGO' : 'PENDENTE';
+                btnPg.style.background = d.pago === 'Sim' ? '#d4edda' : '#f8d7da';
+                btnPg.style.color = d.pago === 'Sim' ? '#155724' : '#721c24';
+
+                document.getElementById(`ps-${id}`).innerText = d.pausado ? '▶' : '⏸';
+                el.classList.toggle('paused', d.pausado);
+
+                if(window[`tm-${id}`]) clearInterval(window[`tm-${id}`]);
+                window[`tm-${id}`] = setInterval(() => {
+                    let rest = d.pausado ? d.msRestantes : (d.modalidadeLivre ? (Date.now() - d.timestamp - d.totalMsPausado) : (d.fimTimestamp - Date.now()));
+                    if(!d.modalidadeLivre) rest = Math.max(0, rest);
+
+                    const s = Math.floor(rest/1000);
+                    document.getElementById(`t-${id}`).innerText = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+                }, 1000);
+            });
+        });
+    }
+
+    // --- CONTROLES ---
+    window.add = async(id, m) => {
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data();
+        await updateDoc(r, d.pausado ? { msRestantes: d.msRestantes + (m*60000) } : { fimTimestamp: d.fimTimestamp + (m*60000) });
+    };
+    window.ps = async(id) => {
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data(), now = Date.now();
+        if(d.pausado) await updateDoc(r, { pausado: false, fimTimestamp: now + d.msRestantes, totalMsPausado: (d.totalMsPausado||0) + (now - d.ultimoPause) });
+        else await updateDoc(r, { pausado: true, msRestantes: d.fimTimestamp - now, ultimoPause: now });
+    };
+    window.pg = async(id) => {
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data();
+        await updateDoc(r, { pago: d.pago==='Sim'?'Não':'Sim' });
+    };
+    window.fim = async(id) => {
+        if(!confirm("Finalizar?")) return;
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data(), now = Date.now();
+        const mins = Math.max(1, Math.floor((now - d.timestamp - d.totalMsPausado)/60000));
+        const val = (d.modalidadeLivre ? mins : d.minutosContratados) * d.precoBase;
+        await addDoc(collection(db, `hist_${USER_DATA.nome}_${USER_DATA.cidade}`), {
+            veiculo: d.veiculo, valor: val, pago: d.pago, data: now, tempo: mins
+        });
+        await deleteDoc(r);
+    };
+
+    // --- RELATÓRIO ---
+    window.carregarHistorico = async () => {
+        const userRef = document.getElementById('filtro-master-user').value;
+        const colName = (USER_DATA.isMaster && userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
+        const dataF = document.getElementById('filtro-data').value;
+
+        onSnapshot(query(collection(db, colName), orderBy('data', 'desc')), (snap) => {
+            const tb = document.getElementById('corpo-historico');
+            let total = 0; tb.innerHTML = "";
+            snap.forEach(d => {
+                const h = d.data();
+                const dia = new Date(h.data).toISOString().split('T')[0];
+                if(!dataF || dataF === dia) {
+                    total += h.valor;
+                    const hora = new Date(h.data).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    tb.innerHTML += `
+                        <tr>
+                            <td>${hora}</td>
+                            <td>${h.veiculo}</td>
+                            <td style="text-align:center">${h.tempo}m</td>
+                            <td class="valor-cell" style="text-align:right">R$ ${h.valor.toFixed(2)}</td>
+                            <td style="text-align:center">
+                                <span class="status-cell ${h.pago==='Sim'?'st-pago':'st-pend'}" onclick="window.toggleHistPg('${d.id}', '${colName}', '${h.pago}')">${h.pago}</span>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+            document.getElementById('total-valor').innerText = `R$ ${total.toFixed(2)}`;
+        });
+    };
+
+    window.toggleHistPg = async (docId, colName, statusAtual) => {
+        const novoStatus = statusAtual === 'Sim' ? 'Não' : 'Sim';
+        await updateDoc(doc(db, colName, docId), { pago: novoStatus });
+    };
+
+    window.limparHistorico = async () => {
+        if(!USER_DATA.isMaster) return;
+        if(!confirm("⚠️ ATENÇÃO JEDAY!\nIsso vai apagar TODO o histórico exibido na tabela.\nTem certeza?")) return;
+
+        const userRef = document.getElementById('filtro-master-user').value;
+        const colName = (userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
+
+        const q = query(collection(db, colName));
+        const snap = await getDocs(q);
+        const batch = writeBatch(db);
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        alert("Histórico limpo com sucesso!");
+    };
+
+    // --- MASTER ---
+    function iniciarMasterListeners() {
+        onSnapshot(collection(db, "usuarios"), (snap) => {
+            const lst = document.getElementById('lista-usuarios-master');
+            const sel = document.getElementById('filtro-master-user');
+            lst.innerHTML = ""; sel.innerHTML = "<option value='meu'>Meu Caixa</option>";
+
+            snap.forEach(d => {
+                const u = d.data();
+                sel.innerHTML += `<option value="${u.nome}_${u.cidade}">${u.cidade} - ${u.nome}</option>`;
+
+                // Monitoramento Global
+                onSnapshot(collection(db, `ativos_${u.nome}_${u.cidade}`), (sA) => {
+                    const mon = document.getElementById('global-monitor');
+                    const divId = `gm-${d.id}`;
+                    let b = document.getElementById(divId);
+                    if(!b) { mon.insertAdjacentHTML('beforeend', `<div id="${divId}"></div>`); b=document.getElementById(divId); }
+                    b.innerHTML = "";
+                    sA.forEach(a => {
+                        b.innerHTML += `<div class="global-item">📍 ${u.cidade} | ${a.data().veiculo}</div>`;
+                    });
+                });
+
+                // Calculo dias restantes
+                const diasRest = u.validade ? Math.ceil((u.validade - Date.now()) / (86400000)) : 0;
+                const statusColor = u.status === 'ativo' ? 'green' : 'red';
+
+                lst.innerHTML += `
+                <div style="background:#eee; padding:10px; margin-bottom:8px; border-radius:8px; border-left:4px solid ${statusColor}">
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <div>
+                            <b>${u.nome}</b> (${u.cidade})<br>
+                            <small>WhatsApp: ${u.whatsapp || 'N/A'}</small><br>
+                            <small>Status: <b>${u.status.toUpperCase()}</b></small>
+                        </div>
+                        <button onclick="window.delUser('${d.id}')" style="background:red; color:white; border:none; border-radius:4px; padding:5px">X</button>
+                    </div>
+                    <div style="margin-top:8px; display:flex; gap:5px; align-items:center; background:white; padding:5px; border-radius:5px">
+                        <small>Assinatura: <b>${diasRest} dias</b></small>
+                        <input type="number" id="add-dias-${d.id}" placeholder="+Dias" style="width:60px; margin:0; padding:5px">
+                        <button onclick="window.renovarUser('${d.id}')" style="background:var(--gold); border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer">RENOVAR</button>
+                    </div>
+                    ${u.status !== 'ativo' ? `<button onclick="window.ativarUser('${d.id}')" style="width:100%; margin-top:5px; background:var(--primary); color:white; border:none; padding:5px; border-radius:4px">APROVAR CADASTRO</button>` : ''}
+                </div>`;
+            });
+        });
+    }
+
+    window.delUser = async(id) => { if(confirm("Remover usuário?")) await deleteDoc(doc(db, "usuarios", id)); };
+
+    window.renovarUser = async(id) => {
+        const dias = parseInt(document.getElementById(`add-dias-${id}`).value);
+        if(!dias) return alert("Digite a quantidade de dias");
+        const novaValidade = Date.now() + (dias * 24 * 60 * 60 * 1000);
+        await updateDoc(doc(db, "usuarios", id), { validade: novaValidade, status: 'ativo' });
+        alert("Assinatura renovada!");
+    };
+
+    window.ativarUser = async(id) => {
+        if(confirm("Aprovar este usuário?")) {
+            // Aprova e dá 1 dia de teste grátis se não tiver validade
+            await updateDoc(doc(db, "usuarios", id), { status: 'ativo', validade: Date.now() + 86400000 }); 
+        }
+    };
+
+    window.setQuickTime = (v) => document.getElementById('tempo-padrao').value = v;
+    window.toggleMasterPanel = () => { const p=document.getElementById('master-panel'); p.style.display = p.style.display==='block'?'none':'block'; };
+    window.switchScreen = (s) => { document.getElementById('login-screen').style.display = s==='login'?'flex':'none'; document.getElementById('register-screen').style.display = s==='register'?'flex':'none'; };
+
+    window.cadastrarUsuario = async () => {
+        const nome = document.getElementById('reg-nome').value;
+        const pass = document.getElementById('reg-pass').value;
+        const cidade = document.getElementById('reg-cidade').value;
+        const preco = parseFloat(document.getElementById('reg-preco').value);
+        const zap = document.getElementById('reg-zap').value;
+        const frota = document.getElementById('reg-frota').value;
+
+        if(!nome || !pass || !preco || !frota) return alert("Preencha tudo!");
+
+        await addDoc(collection(db,"usuarios"), {
+            nome, pass, cidade, preco, whatsapp: zap, frota, 
+            status: 'pendente', validade: 0 // Começa zerado até Jeday aprovar
+        }); 
+        alert("Solicitação enviada! Aguarde aprovação do Jeday."); 
+        window.switchScreen('login');
+    };
+
+    setInterval(() => document.getElementById('relogio').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 1000);
+</script>
+</body>
+</html>
