@@ -456,463 +456,516 @@ body.dark-mode .alert-sub { color: #bbb; }
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDocs, where, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
+  query, orderBy, getDocs, where, getDoc, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyD3WIeOM21IkcjytZ9-We7vJjOV-dYq2IA",
-        authDomain: "cedro-aventuras.firebaseapp.com",
-        projectId: "cedro-aventuras",
-        storageBucket: "cedro-aventuras.firebasestorage.app",
-        messagingSenderId: "750741113990",
-        appId: "1:750741113990:web:35783abcde7f8eb6f6d507"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyD3WIeOM21IkcjytZ9-We7vJjOV-dYq2IA",
+  authDomain: "cedro-aventuras.firebaseapp.com",
+  projectId: "cedro-aventuras",
+  storageBucket: "cedro-aventuras.firebasestorage.app",
+  messagingSenderId: "750741113990",
+  appId: "1:750741113990:web:35783abcde7f8eb6f6d507"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    let USER_DATA = null;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+let USER_DATA = null;
 
-    // --- MODO ESCURO ---
-    window.toggleDarkMode = () => {
-        document.body.classList.toggle('dark-mode');
-    };
+// --- MODO ESCURO ---
+window.toggleDarkMode = () => {
+  document.body.classList.toggle('dark-mode');
+};
 
-    // --- LOGIN ---
-    window.tentarLogin = async () => {
-        const cidade = document.getElementById('login-cidade').value;
-        const user = document.getElementById('user').value;
-        const pass = document.getElementById('pass').value;
+// --- LOGIN ---
+window.tentarLogin = async () => {
+  const cidade = document.getElementById('login-cidade').value;
+  const user = document.getElementById('user').value;
+  const pass = document.getElementById('pass').value;
 
-        if(user === "Jeday" && pass === "master77") {
-            loginSucesso({ 
-                nome: "Jeday", usuario: "Jeday", cidade: "Cedro", status: "ativo", isMaster: true, 
-                frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete", 
-                preco: 1, validade: 9999999999999 
-            });
-            return;
-        }
+  if (user === "Jeday" && pass === "master77") {
+    loginSucesso({
+      nome: "Jeday", usuario: "Jeday", cidade: "Cedro", status: "ativo", isMaster: true,
+      frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete",
+      preco: 1, validade: 9999999999999
+    });
+    return;
+  }
 
-        let q = query(collection(db, "usuarios"), where("usuario", "==", user), where("cidade", "==", cidade));
-        let snap = await getDocs(q);
+  let q = query(collection(db, "usuarios"), where("usuario", "==", user), where("cidade", "==", cidade));
+  let snap = await getDocs(q);
 
-        if(snap.empty) {
-            q = query(collection(db, "usuarios"), where("nome", "==", user), where("cidade", "==", cidade));
-            snap = await getDocs(q);
-        }
+  if (snap.empty) {
+    q = query(collection(db, "usuarios"), where("nome", "==", user), where("cidade", "==", cidade));
+    snap = await getDocs(q);
+  }
 
-        if(snap.empty || snap.docs[0].data().pass !== pass) return alert("Dados incorretos.");
+  if (snap.empty || snap.docs[0].data().pass !== pass) return alert("Dados incorretos.");
+  const dados = snap.docs[0].data();
+  if (dados.status !== "ativo") return alert("Aguarde a aprovação do Jeday.");
+  const agora = Date.now();
 
-        const dados = snap.docs[0].data();
-        if(dados.status !== "ativo") return alert("Aguarde a aprovação do Jeday.");
+  if (dados.validade && agora > dados.validade) {
+    return alert("SUA ASSINATURA EXPIROU! Entre em contato com Jeday para renovar.");
+  }
 
-        const agora = Date.now();
-        if(dados.validade && agora > dados.validade) {
-            return alert("SUA ASSINATURA EXPIROU! Entre em contato com Jeday para renovar.");
-        }
+  loginSucesso({ ...dados, id: snap.docs[0].id });
+};
 
-        loginSucesso({...dados, id: snap.docs[0].id});
-    };
+function loginSucesso(dados) {
+  USER_DATA = dados;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('op-nome').innerText = USER_DATA.nome;
 
-    function loginSucesso(dados) {
-        USER_DATA = dados;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'block';
-        document.getElementById('op-nome').innerText = USER_DATA.nome;
+  const agora = Date.now();
 
-        const agora = Date.now();
-        if(USER_DATA.isMaster) {
-            document.getElementById('op-assinatura').innerText = "👑 Acesso Vitalício";
-        } else {
-            const diasRestantes = Math.ceil((USER_DATA.validade - agora) / (1000 * 60 * 60 * 24));
-            const elAss = document.getElementById('op-assinatura');
-            elAss.innerText = `⏳ ${diasRestantes} dias restantes`;
-            if(diasRestantes <= 3) elAss.classList.add('assinatura-alert');
-        }
+  if (USER_DATA.isMaster) {
+    document.getElementById('op-assinatura').innerText = "👑 Acesso Vitalício";
+  } else {
+    const diasRestantes = Math.ceil((USER_DATA.validade - agora) / (1000 * 60 * 60 * 24));
+    const elAss = document.getElementById('op-assinatura');
+    elAss.innerText = `⏳ ${diasRestantes} dias restantes`;
+    if (diasRestantes <= 3) elAss.classList.add('assinatura-alert');
+  }
 
-        if(USER_DATA.isMaster) {
-            document.getElementById('btn-master-toggle').style.display = 'block';
-            document.getElementById('filtro-master-user').style.display = 'block';
-            document.getElementById('btn-limpar-hist').style.display = 'block';
-            iniciarMasterListeners();
-        }
+  if (USER_DATA.isMaster) {
+    document.getElementById('btn-master-toggle').style.display = 'block';
+    document.getElementById('filtro-master-user').style.display = 'block';
+    document.getElementById('btn-limpar-hist').style.display = 'block';
+    iniciarMasterListeners();
+  }
 
-        montarFrota();
-        iniciarCards();
-        window.carregarHistorico();
-    }
+  montarFrota();
+  iniciarCards();
+  window.carregarHistorico();
+}
 
-    // --- RENDERIZAÇÃO DA FROTA ---
-    function montarFrota() {
-        const div = document.getElementById('frota-dinamica');
-        div.innerHTML = "";
-        USER_DATA.frota.split(',').forEach(item => {
-            const nome = item.trim();
-            const corClass = descobrirCor(nome);
-            div.innerHTML += `<button class="btn-frota ${corClass}" onclick="window.iniciar('${nome}')">${nome}</button>`;
+// --- RENDERIZAÇÃO DA FROTA ---
+function montarFrota() {
+  const div = document.getElementById('frota-dinamica');
+  div.innerHTML = "";
+  USER_DATA.frota.split(',').forEach(item => {
+    const nome = item.trim();
+    const corClass = descobrirCor(nome);
+    div.innerHTML += `<button class="btn-frota ${corClass}" onclick="window.iniciar('${nome}')">${nome}</button>`;
+  });
+}
+
+function descobrirCor(texto) {
+  const t = texto.toLowerCase();
+  if (t.includes('vermelh')) return 'cor-vermelho';
+  if (t.includes('branc')) return 'cor-branco';
+  if (t.includes('amarel')) return 'cor-amarelo';
+  if (t.includes('rosa')) return 'cor-rosa';
+  if (t.includes('azul')) return 'cor-azul';
+  if (t.includes('verd')) return 'cor-verde';
+  if (t.includes('pret')) return 'cor-preto';
+  if (t.includes('laranj')) return 'cor-laranja';
+  return 'cor-padrao';
+}
+
+// --- LÓGICA DE CARDS ---
+window.iniciar = async (veiculo) => {
+  const min = parseInt(document.getElementById('tempo-padrao').value);
+  const agora = Date.now();
+
+  await addDoc(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), {
+    veiculo,
+    crianca: document.getElementById('nome-crianca').value || "Cliente",
+    timestamp: agora,
+    fimTimestamp: agora + (min * 60000),
+    minutosContratados: min,
+    pago: "Não",
+    pausado: false,
+    msRestantes: min * 60000,
+    totalMsPausado: 0,
+    precoBase: USER_DATA.preco,
+    modalidadeLivre: min >= 9999
+  });
+
+  document.getElementById('nome-crianca').value = "";
+};
+
+function iniciarCards() {
+  onSnapshot(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), (snap) => {
+    const div = document.getElementById('container-cards');
+    const ativos = snap.docs.map(d => d.id);
+
+    document.querySelectorAll('.card').forEach(c => {
+      if (!ativos.includes(c.id.replace('c-', ''))) c.remove();
+    });
+
+    snap.docs.forEach(docSnap => {
+      const d = docSnap.data(), id = docSnap.id;
+
+      let el = document.getElementById(`c-${id}`);
+      if (!el) {
+        div.insertAdjacentHTML('beforeend', `
+          <div class="card" id="c-${id}">
+            <div style="display:flex; justify-content:space-between">
+              <div><b>${d.veiculo}</b><br><small>${d.crianca}</small></div>
+              <button id="pg-${id}" onclick="window.pg('${id}')" style="border:none; border-radius:5px; font-weight:bold; cursor:pointer; height:30px"></button>
+            </div>
+            <div class="timer-big" id="t-${id}">00:00</div>
+            <div class="card-controls">
+              <button class="btn-ctrl" style="background:#e67e22" onclick="window.add('${id}',-1)">-1m</button>
+              <button class="btn-ctrl" style="background:#27ae60" onclick="window.add('${id}',1)">+1m</button>
+              <button class="btn-ctrl" style="background:var(--insta)" onclick="window.addBonus('${id}')">🎁 20%</button>
+              <button class="btn-ctrl" style="background:#2980b9" id="ps-${id}" onclick="window.ps('${id}')">⏸</button>
+              <button class="btn-ctrl" style="background:#c0392b" onclick="window.fim('${id}')">FIM</button>
+            </div>
+          </div>
+        `);
+        el = document.getElementById(`c-${id}`);
+      }
+
+      const btnPg = document.getElementById(`pg-${id}`);
+      btnPg.innerText = d.pago === 'Sim' ? '✅ PAGO' : 'PENDENTE';
+      btnPg.style.background = d.pago === 'Sim' ? '#d4edda' : '#f8d7da';
+      btnPg.style.color = d.pago === 'Sim' ? '#155724' : '#721c24';
+
+      document.getElementById(`ps-${id}`).innerText = d.pausado ? '▶' : '⏸';
+      el.classList.toggle('paused', d.pausado);
+
+      if (window[`tm-${id}`]) clearInterval(window[`tm-${id}`]);
+
+      window[`tm-${id}`] = setInterval(() => {
+        let rest = d.pausado
+          ? d.msRestantes
+          : (d.modalidadeLivre ? (Date.now() - d.timestamp - d.totalMsPausado) : (d.fimTimestamp - Date.now()));
+
+        if (!d.modalidadeLivre) rest = Math.max(0, rest);
+
+        const s = Math.floor(rest / 1000);
+        document.getElementById(`t-${id}`).innerText = `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+      }, 1000);
+    });
+  });
+}
+
+// --- CONTROLES ---
+window.add = async (id, m) => {
+  const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data();
+  await updateDoc(r, d.pausado ? { msRestantes: d.msRestantes + (m * 60000) } : { fimTimestamp: d.fimTimestamp + (m * 60000) });
+};
+
+// BÔNUS INSTAGRAM
+window.addBonus = async (id) => {
+  const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data();
+  if (d.modalidadeLivre) return alert("Modo Livre não tem limite de tempo.");
+
+  const bonusMin = Math.floor(d.minutosContratados * 0.20); // 20%
+  if (bonusMin < 1) return alert("Tempo muito curto para bônus.");
+
+  if (confirm(`Adicionar bônus de ${bonusMin} minutos (Instagram)?\nO valor cobrado não mudará.`)) {
+    await updateDoc(r, d.pausado ? { msRestantes: d.msRestantes + (bonusMin * 60000) } : { fimTimestamp: d.fimTimestamp + (bonusMin * 60000) });
+  }
+};
+
+window.ps = async (id) => {
+  const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data(), now = Date.now();
+  if (d.pausado) await updateDoc(r, { pausado: false, fimTimestamp: now + d.msRestantes, totalMsPausado: (d.totalMsPausado || 0) + (now - d.ultimoPause) });
+  else await updateDoc(r, { pausado: true, msRestantes: d.fimTimestamp - now, ultimoPause: now });
+};
+
+window.pg = async (id) => {
+  const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data();
+  await updateDoc(r, { pago: d.pago === 'Sim' ? 'Não' : 'Sim' });
+};
+
+window.fim = async (id) => {
+  if (!confirm("Finalizar?")) return;
+
+  const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data(), now = Date.now();
+  const tempoDecorridoMs = now - d.timestamp - (d.totalMsPausado || 0);
+
+  let minsReais = Math.max(1, Math.floor(tempoDecorridoMs / 60000));
+  let minsCobrar = minsReais;
+
+  if (!d.modalidadeLivre) {
+    minsCobrar = Math.min(minsReais, d.minutosContratados);
+  }
+
+  const val = minsCobrar * d.precoBase;
+
+  await addDoc(collection(db, `hist_${USER_DATA.nome}_${USER_DATA.cidade}`), {
+    veiculo: d.veiculo, valor: val, pago: d.pago, data: now, tempo: minsCobrar
+  });
+
+  await deleteDoc(r);
+};
+
+// --- RELATÓRIO ---
+window.carregarHistorico = async () => {
+  const userRef = document.getElementById('filtro-master-user').value;
+  const colName = (USER_DATA.isMaster && userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
+  const dataF = document.getElementById('filtro-data').value;
+
+  onSnapshot(query(collection(db, colName), orderBy('data', 'desc')), (snap) => {
+    const tb = document.getElementById('corpo-historico');
+    let total = 0; tb.innerHTML = "";
+
+    snap.forEach(d => {
+      const h = d.data();
+      const dia = new Date(h.data).toISOString().split('T')[0];
+
+      if (!dataF || dataF === dia) {
+        if (h.pago === 'Sim') total += h.valor;
+        const hora = new Date(h.data).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        tb.innerHTML += `
+          <tr>
+            <td>${hora}</td>
+            <td>${h.veiculo}</td>
+            <td style="text-align:center">${h.tempo}m</td>
+            <td class="valor-cell" style="text-align:right">R$ ${h.valor.toFixed(2)}</td>
+            <td style="text-align:center">
+              <span class="status-cell ${h.pago === 'Sim' ? 'st-pago' : 'st-pend'}" onclick="window.toggleHistPg('${d.id}', '${colName}', '${h.pago}')">${h.pago}</span>
+            </td>
+          </tr>
+        `;
+      }
+    });
+
+    document.getElementById('total-valor').innerText = `R$ ${total.toFixed(2)}`;
+  });
+};
+
+window.toggleHistPg = async (docId, colName, statusAtual) => {
+  const novoStatus = statusAtual === 'Sim' ? 'Não' : 'Sim';
+  await updateDoc(doc(db, colName, docId), { pago: novoStatus });
+};
+
+window.limparHistorico = async () => {
+  if (!USER_DATA.isMaster) return;
+  if (!confirm("⚠️ ATENÇÃO JEDAY!\nIsso vai apagar TODO o histórico exibido na tabela.\nTem certeza?")) return;
+
+  const userRef = document.getElementById('filtro-master-user').value;
+  const colName = (userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
+  const q = query(collection(db, colName));
+  const snap = await getDocs(q);
+
+  const batch = writeBatch(db);
+  snap.forEach(docu => batch.delete(docu.ref));
+  await batch.commit();
+
+  alert("Histórico limpo com sucesso!");
+};
+
+// --- TICKET ---
+window.abrirModalTicket = () => {
+  document.getElementById('ticket-modal').style.display = 'flex';
+};
+
+window.imprimirTicketManual = () => {
+  const min = document.getElementById('ticket-tempo').value;
+  const val = parseFloat(document.getElementById('ticket-valor').value).toFixed(2);
+
+  document.getElementById('print-cidade').innerText = USER_DATA.cidade.toUpperCase();
+  document.getElementById('print-tempo').innerText = `${min} MINUTOS`;
+  document.getElementById('print-valor').innerText = `R$ ${val}`;
+  document.getElementById('print-data').innerText = `Data: ${new Date().toLocaleString()}`;
+
+  window.print();
+  document.getElementById('ticket-modal').style.display = 'none';
+};
+
+// --- MASTER ---
+function iniciarMasterListeners() {
+  onSnapshot(collection(db, "usuarios"), (snap) => {
+    const lst = document.getElementById('lista-usuarios-master');
+    const sel = document.getElementById('filtro-master-user');
+
+    lst.innerHTML = "";
+    sel.innerHTML = "<option value='meu'>Meu Caixa</option>";
+
+    snap.forEach(d => {
+      const u = d.data();
+
+      sel.innerHTML += `<option value="${u.nome}_${u.cidade}">${u.cidade} - ${u.nome}</option>`;
+
+      onSnapshot(collection(db, `ativos_${u.nome}_${u.cidade}`), (sA) => {
+        const mon = document.getElementById('global-monitor');
+        const divId = `gm-${d.id}`;
+
+        let b = document.getElementById(divId);
+        if (!b) { mon.insertAdjacentHTML('beforeend', `<div id="${divId}"></div>`); b = document.getElementById(divId); }
+
+        b.innerHTML = "";
+        sA.forEach(a => {
+          b.innerHTML += `<div class="global-item">📍 ${u.cidade} | ${a.data().veiculo}</div>`;
         });
-    }
+      });
 
-    function descobrirCor(texto) {
-        const t = texto.toLowerCase();
-        if(t.includes('vermelh')) return 'cor-vermelho';
-        if(t.includes('branc')) return 'cor-branco';
-        if(t.includes('amarel')) return 'cor-amarelo';
-        if(t.includes('rosa')) return 'cor-rosa';
-        if(t.includes('azul')) return 'cor-azul';
-        if(t.includes('verd')) return 'cor-verde';
-        if(t.includes('pret')) return 'cor-preto';
-        if(t.includes('laranj')) return 'cor-laranja';
-        return 'cor-padrao';
-    }
+      const diasRest = u.validade ? Math.ceil((u.validade - Date.now()) / (86400000)) : 0;
+      const statusColor = u.status === 'ativo' ? 'green' : 'red';
 
-    // --- LÓGICA DE CARDS ---
-    window.iniciar = async (veiculo) => {
-        const min = parseInt(document.getElementById('tempo-padrao').value);
-        const agora = Date.now();
+      // Botão de Editar (Lápis)
+      lst.innerHTML += `
+        <div style="background:#eee; padding:10px; margin-bottom:8px; border-radius:8px; border-left:4px solid ${statusColor}">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <div>
+              <b>${u.nome}</b> (${u.cidade})<br>
+              <small>User: ${u.usuario || 'Antigo'}</small><br>
+              <small>Status: <b>${u.status.toUpperCase()}</b></small>
+            </div>
+            <div style="display:flex; gap:5px">
+              <button onclick="window.editarUser('${d.id}')" style="background:#333; color:white; border:none; border-radius:4px; padding:5px; cursor:pointer">✏️</button>
+              <button onclick="window.delUser('${d.id}')" style="background:red; color:white; border:none; border-radius:4px; padding:5px; cursor:pointer">X</button>
+            </div>
+          </div>
 
-        await addDoc(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), {
-            veiculo, crianca: document.getElementById('nome-crianca').value || "Cliente",
-            timestamp: agora, fimTimestamp: agora + (min * 60000),
-            minutosContratados: min, pago: "Não", pausado: false, 
-            msRestantes: min * 60000, totalMsPausado: 0, precoBase: USER_DATA.preco, modalidadeLivre: min >= 9999
-        });
-        document.getElementById('nome-crianca').value = "";
-    };
+          <div style="margin-top:8px; display:flex; gap:5px; align-items:center; background:white; padding:5px; border-radius:5px">
+            <small>Assinatura: <b>${diasRest} dias</b></small>
+            <input type="number" id="add-dias-${d.id}" placeholder="+Dias" style="width:60px; margin:0; padding:5px">
+            <button onclick="window.renovarUser('${d.id}')" style="background:var(--gold); border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer">RENOVAR</button>
+          </div>
 
-    function iniciarCards() {
-        onSnapshot(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), (snap) => {
-            const div = document.getElementById('container-cards');
-            const ativos = snap.docs.map(d => d.id);
-            document.querySelectorAll('.card').forEach(c => { if(!ativos.includes(c.id.replace('c-',''))) c.remove(); });
+          ${u.status !== 'ativo'
+            ? `<button onclick="window.ativarUser('${d.id}')" style="width:100%; margin-top:5px; background:var(--primary); color:white; border:none; padding:5px; border-radius:4px">APROVAR CADASTRO</button>`
+            : ''
+          }
+        </div>
+      `;
+    });
+  });
+}
 
-            snap.docs.forEach(docSnap => {
-                const d = docSnap.data(), id = docSnap.id;
-                let el = document.getElementById(`c-${id}`);
+// --- FUNÇÕES DE EDIÇÃO JEDAY ---
+window.editarUser = async (id) => {
+  const docSnap = await getDoc(doc(db, "usuarios", id));
+  const u = docSnap.data();
 
-                if(!el) {
-                    div.insertAdjacentHTML('beforeend', `
-                        <div class="card" id="c-${id}">
-                            <div style="display:flex; justify-content:space-between">
-                                <div><b>${d.veiculo}</b><br><small>${d.crianca}</small></div>
-                                <button id="pg-${id}" onclick="window.pg('${id}')" style="border:none; border-radius:5px; font-weight:bold; cursor:pointer; height:30px"></button>
-                            </div>
-                            <div class="timer-big" id="t-${id}">00:00</div>
-                            <div class="card-controls">
-                                <button class="btn-ctrl" style="background:#e67e22" onclick="window.add('${id}',-1)">-1m</button>
-                                <button class="btn-ctrl" style="background:#27ae60" onclick="window.add('${id}',1)">+1m</button>
-                                <button class="btn-ctrl" style="background:var(--insta)" onclick="window.addBonus('${id}')">🎁 20%</button>
-                                <button class="btn-ctrl" style="background:#2980b9" id="ps-${id}" onclick="window.ps('${id}')">⏸</button>
-                                <button class="btn-ctrl" style="background:#c0392b" onclick="window.fim('${id}')">FIM</button>
-                            </div>
-                        </div>
-                    `);
-                    el = document.getElementById(`c-${id}`);
-                }
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-nome').value = u.nome;
+  document.getElementById('edit-user').value = u.usuario || "";
+  document.getElementById('edit-pass').value = u.pass;
+  document.getElementById('edit-preco').value = u.preco;
+  document.getElementById('edit-zap').value = u.whatsapp || "";
+  document.getElementById('edit-frota').value = u.frota;
 
-                const btnPg = document.getElementById(`pg-${id}`);
-                btnPg.innerText = d.pago === 'Sim' ? '✅ PAGO' : 'PENDENTE';
-                btnPg.style.background = d.pago === 'Sim' ? '#d4edda' : '#f8d7da';
-                btnPg.style.color = d.pago === 'Sim' ? '#155724' : '#721c24';
+  document.getElementById('edit-user-modal').style.display = 'flex';
+};
 
-                document.getElementById(`ps-${id}`).innerText = d.pausado ? '▶' : '⏸';
-                el.classList.toggle('paused', d.pausado);
+window.salvarEdicaoUser = async () => {
+  const id = document.getElementById('edit-id').value;
 
-                if(window[`tm-${id}`]) clearInterval(window[`tm-${id}`]);
-                window[`tm-${id}`] = setInterval(() => {
-                    let rest = d.pausado ? d.msRestantes : (d.modalidadeLivre ? (Date.now() - d.timestamp - d.totalMsPausado) : (d.fimTimestamp - Date.now()));
-                    if(!d.modalidadeLivre) rest = Math.max(0, rest);
-                    const s = Math.floor(rest/1000);
-                    document.getElementById(`t-${id}`).innerText = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
-                }, 1000);
-            });
-        });
-    }
+  await updateDoc(doc(db, "usuarios", id), {
+    nome: document.getElementById('edit-nome').value,
+    usuario: document.getElementById('edit-user').value,
+    pass: document.getElementById('edit-pass').value,
+    preco: parseFloat(document.getElementById('edit-preco').value),
+    whatsapp: document.getElementById('edit-zap').value,
+    frota: document.getElementById('edit-frota').value
+  });
 
-    // --- CONTROLES ---
-    window.add = async(id, m) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data();
-        await updateDoc(r, d.pausado ? { msRestantes: d.msRestantes + (m*60000) } : { fimTimestamp: d.fimTimestamp + (m*60000) });
-    };
+  document.getElementById('edit-user-modal').style.display = 'none';
+  alert("Dados atualizados com sucesso!");
+};
 
-    // BÔNUS INSTAGRAM
-    window.addBonus = async(id) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data();
-        if(d.modalidadeLivre) return alert("Modo Livre não tem limite de tempo.");
+// Função oculta para criar usuários padrão (Senha 1234)
+window.criarUsuariosPadrao = async () => {
+  if (!confirm("Criar Cydinha e Thallys em Cedro?")) return;
 
-        const bonusMin = Math.floor(d.minutosContratados * 0.20); // 20%
-        if(bonusMin < 1) return alert("Tempo muito curto para bônus.");
+  const batch = writeBatch(db);
 
-        if(confirm(`Adicionar bônus de ${bonusMin} minutos (Instagram)?\nO valor cobrado não mudará.`)) {
-            await updateDoc(r, d.pausado ? { msRestantes: d.msRestantes + (bonusMin*60000) } : { fimTimestamp: d.fimTimestamp + (bonusMin*60000) });
-        }
-    };
+  const ref1 = doc(collection(db, "usuarios"));
+  batch.set(ref1, {
+    nome: "Cydinha", usuario: "Cydinha", pass: "1234", cidade: "Cedro", preco: 1.0,
+    whatsapp: "", frota: "Carrinho Rosa, Moto Branca", status: "ativo", validade: Date.now() + (365 * 24 * 60 * 60 * 1000)
+  });
 
-    window.ps = async(id) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data(), now = Date.now();
-        if(d.pausado) await updateDoc(r, { pausado: false, fimTimestamp: now + d.msRestantes, totalMsPausado: (d.totalMsPausado||0) + (now - d.ultimoPause) });
-        else await updateDoc(r, { pausado: true, msRestantes: d.fimTimestamp - now, ultimoPause: now });
-    };
+  const ref2 = doc(collection(db, "usuarios"));
+  batch.set(ref2, {
+    nome: "Thallys", usuario: "Thallys", pass: "1234", cidade: "Cedro", preco: 1.0,
+    whatsapp: "", frota: "Carrinho Azul, Moto Preta", status: "ativo", validade: Date.now() + (365 * 24 * 60 * 60 * 1000)
+  });
 
-    window.pg = async(id) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data();
-        await updateDoc(r, { pago: d.pago==='Sim'?'Não':'Sim' });
-    };
+  await batch.commit();
+  alert("Usuários criados!");
+};
 
-    window.fim = async(id) => {
-        if(!confirm("Finalizar?")) return;
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), d = (await getDoc(r)).data(), now = Date.now();
+window.delUser = async (id) => { if (confirm("Remover usuário?")) await deleteDoc(doc(db, "usuarios", id)); };
 
-        const tempoDecorridoMs = now - d.timestamp - (d.totalMsPausado || 0);
-        let minsReais = Math.max(1, Math.floor(tempoDecorridoMs / 60000));
+window.renovarUser = async (id) => {
+  const dias = parseInt(document.getElementById(`add-dias-${id}`).value);
+  if (!dias) return alert("Digite a quantidade de dias");
 
-        let minsCobrar = minsReais;
-        if(!d.modalidadeLivre) {
-            minsCobrar = Math.min(minsReais, d.minutosContratados);
-        }
+  const novaValidade = Date.now() + (dias * 24 * 60 * 60 * 1000);
+  await updateDoc(doc(db, "usuarios", id), { validade: novaValidade, status: 'ativo' });
 
-        const val = minsCobrar * d.precoBase;
+  alert("Assinatura renovada!");
+};
 
-        await addDoc(collection(db, `hist_${USER_DATA.nome}_${USER_DATA.cidade}`), {
-            veiculo: d.veiculo, valor: val, pago: d.pago, data: now, tempo: minsCobrar
-        });
-        await deleteDoc(r);
-    };
+window.ativarUser = async (id) => {
+  if (confirm("Aprovar este usuário?")) {
+    await updateDoc(doc(db, "usuarios", id), { status: 'ativo', validade: Date.now() + 86400000 });
+  }
+};
 
-    // --- RELATÓRIO ---
-    window.carregarHistorico = async () => {
-        const userRef = document.getElementById('filtro-master-user').value;
-        const colName = (USER_DATA.isMaster && userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
-        const dataF = document.getElementById('filtro-data').value;
+window.setQuickTime = (v) => document.getElementById('tempo-padrao').value = v;
 
-        onSnapshot(query(collection(db, colName), orderBy('data', 'desc')), (snap) => {
-            const tb = document.getElementById('corpo-historico');
-            let total = 0; tb.innerHTML = "";
-            snap.forEach(d => {
-                const h = d.data();
-                const dia = new Date(h.data).toISOString().split('T')[0];
-                if(!dataF || dataF === dia) {
-                    if(h.pago === 'Sim') total += h.valor;
+window.toggleMasterPanel = () => {
+  const p = document.getElementById('master-panel');
+  p.style.display = p.style.display === 'block' ? 'none' : 'block';
+};
 
-                    const hora = new Date(h.data).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                    tb.innerHTML += `
-                        <tr>
-                            <td>${hora}</td>
-                            <td>${h.veiculo}</td>
-                            <td style="text-align:center">${h.tempo}m</td>
-                            <td class="valor-cell" style="text-align:right">R$ ${h.valor.toFixed(2)}</td>
-                            <td style="text-align:center">
-                                <span class="status-cell ${h.pago==='Sim'?'st-pago':'st-pend'}" onclick="window.toggleHistPg('${d.id}', '${colName}', '${h.pago}')">${h.pago}</span>
-                            </td>
-                        </tr>
-                    `;
-                }
-            });
-            document.getElementById('total-valor').innerText = `R$ ${total.toFixed(2)}`;
-        });
-    };
+window.switchScreen = (s) => {
+  document.getElementById('login-screen').style.display = s === 'login' ? 'flex' : 'none';
+  document.getElementById('register-screen').style.display = s === 'register' ? 'flex' : 'none';
+};
 
-    window.toggleHistPg = async (docId, colName, statusAtual) => {
-        const novoStatus = statusAtual === 'Sim' ? 'Não' : 'Sim';
-        await updateDoc(doc(db, colName, docId), { pago: novoStatus });
-    };
+window.cadastrarUsuario = async () => {
+  const nome = document.getElementById('reg-nome').value;
+  const user = document.getElementById('reg-user').value;
+  const pass = document.getElementById('reg-pass').value;
+  const cidade = document.getElementById('reg-cidade').value;
+  const preco = parseFloat(document.getElementById('reg-preco').value);
+  const zap = document.getElementById('reg-zap').value;
+  const frota = document.getElementById('reg-frota').value;
 
-    window.limparHistorico = async () => {
-        if(!USER_DATA.isMaster) return;
-        if(!confirm("⚠️ ATENÇÃO JEDAY!\nIsso vai apagar TODO o histórico exibido na tabela.\nTem certeza?")) return;
-        const userRef = document.getElementById('filtro-master-user').value;
-        const colName = (userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
-        const q = query(collection(db, colName));
-        const snap = await getDocs(q);
-        const batch = writeBatch(db);
-        snap.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        alert("Histórico limpo com sucesso!");
-    };
+  if (!nome || !user || !pass || !preco || !frota) return alert("Preencha tudo!");
 
-    // --- TICKET ---
-    window.abrirModalTicket = () => {
-        document.getElementById('ticket-modal').style.display = 'flex';
-    };
+  await addDoc(collection(db, "usuarios"), {
+    nome, usuario: user, pass, cidade, preco, whatsapp: zap, frota,
+    status: 'pendente', validade: 0
+  });
 
-    window.imprimirTicketManual = () => {
-        const min = document.getElementById('ticket-tempo').value;
-        const val = parseFloat(document.getElementById('ticket-valor').value).toFixed(2);
+  alert("Solicitação enviada! Aguarde aprovação do Jeday.");
+  window.switchScreen('login');
+};
 
-        document.getElementById('print-cidade').innerText = USER_DATA.cidade.toUpperCase();
-        document.getElementById('print-tempo').innerText = `${min} MINUTOS`;
-        document.getElementById('print-valor').innerText = `R$ ${val}`;
-        document.getElementById('print-data').innerText = `Data: ${new Date().toLocaleString()}`;
+setInterval(() => {
+  document.getElementById('relogio').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}, 1000);
 
-        window.print();
-        document.getElementById('ticket-modal').style.display = 'none';
-    };
+/* ============================================================
+   ACRESCIMO: NOTIFICAÇÃO + MODAL VERMELHO PULSANTE + VOZ
+   (não interfere no restante; apenas adiciona)
+============================================================ */
 
-    // --- MASTER ---
-    function iniciarMasterListeners() {
-        onSnapshot(collection(db, "usuarios"), (snap) => {
-            const lst = document.getElementById('lista-usuarios-master');
-            const sel = document.getElementById('filtro-master-user');
-            lst.innerHTML = ""; sel.innerHTML = "<option value='meu'>Meu Caixa</option>";
-
-            snap.forEach(d => {
-                const u = d.data();
-                sel.innerHTML += `<option value="${u.nome}_${u.cidade}">${u.cidade} - ${u.nome}</option>`;
-
-                onSnapshot(collection(db, `ativos_${u.nome}_${u.cidade}`), (sA) => {
-                    const mon = document.getElementById('global-monitor');
-                    const divId = `gm-${d.id}`;
-                    let b = document.getElementById(divId);
-                    if(!b) { mon.insertAdjacentHTML('beforeend', `<div id="${divId}"></div>`); b=document.getElementById(divId); }
-                    b.innerHTML = "";
-                    sA.forEach(a => {
-                        b.innerHTML += `<div class="global-item">📍 ${u.cidade} | ${a.data().veiculo}</div>`;
-                    });
-                });
-
-                const diasRest = u.validade ? Math.ceil((u.validade - Date.now()) / (86400000)) : 0;
-                const statusColor = u.status === 'ativo' ? 'green' : 'red';
-
-                // Botão de Editar (Lápis)
-                lst.innerHTML += `
-                <div style="background:#eee; padding:10px; margin-bottom:8px; border-radius:8px; border-left:4px solid ${statusColor}">
-                    <div style="display:flex; justify-content:space-between; align-items:center">
-                        <div>
-                            <b>${u.nome}</b> (${u.cidade})<br>
-                            <small>User: ${u.usuario || 'Antigo'}</small><br>
-                            <small>Status: <b>${u.status.toUpperCase()}</b></small>
-                        </div>
-                        <div style="display:flex; gap:5px">
-                            <button onclick="window.editarUser('${d.id}')" style="background:#333; color:white; border:none; border-radius:4px; padding:5px; cursor:pointer">✏️</button>
-                            <button onclick="window.delUser('${d.id}')" style="background:red; color:white; border:none; border-radius:4px; padding:5px; cursor:pointer">X</button>
-                        </div>
-                    </div>
-                    <div style="margin-top:8px; display:flex; gap:5px; align-items:center; background:white; padding:5px; border-radius:5px">
-                        <small>Assinatura: <b>${diasRest} dias</b></small>
-                        <input type="number" id="add-dias-${d.id}" placeholder="+Dias" style="width:60px; margin:0; padding:5px">
-                        <button onclick="window.renovarUser('${d.id}')" style="background:var(--gold); border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer">RENOVAR</button>
-                    </div>
-                    ${u.status !== 'ativo' ? `<button onclick="window.ativarUser('${d.id}')" style="width:100%; margin-top:5px; background:var(--primary); color:white; border:none; padding:5px; border-radius:4px">APROVAR CADASTRO</button>` : ''}
-                </div>`;
-            });
-        });
-    }
-
-    // --- FUNÇÕES DE EDIÇÃO JEDAY ---
-    window.editarUser = async (id) => {
-        const docSnap = await getDoc(doc(db, "usuarios", id));
-        const u = docSnap.data();
-        document.getElementById('edit-id').value = id;
-        document.getElementById('edit-nome').value = u.nome;
-        document.getElementById('edit-user').value = u.usuario || "";
-        document.getElementById('edit-pass').value = u.pass;
-        document.getElementById('edit-preco').value = u.preco;
-        document.getElementById('edit-zap').value = u.whatsapp || "";
-        document.getElementById('edit-frota').value = u.frota;
-        document.getElementById('edit-user-modal').style.display = 'flex';
-    };
-
-    window.salvarEdicaoUser = async () => {
-        const id = document.getElementById('edit-id').value;
-        await updateDoc(doc(db, "usuarios", id), {
-            nome: document.getElementById('edit-nome').value,
-            usuario: document.getElementById('edit-user').value,
-            pass: document.getElementById('edit-pass').value,
-            preco: parseFloat(document.getElementById('edit-preco').value),
-            whatsapp: document.getElementById('edit-zap').value,
-            frota: document.getElementById('edit-frota').value
-        });
-        document.getElementById('edit-user-modal').style.display = 'none';
-        alert("Dados atualizados com sucesso!");
-    };
-
-    // Função oculta para criar usuários padrão (Senha 1234)
-    window.criarUsuariosPadrao = async () => {
-        if(!confirm("Criar Cydinha e Thallys em Cedro?")) return;
-        const batch = writeBatch(db);
-
-        const ref1 = doc(collection(db, "usuarios"));
-        batch.set(ref1, {
-            nome: "Cydinha", usuario: "Cydinha", pass: "1234", cidade: "Cedro", preco: 1.0, 
-            whatsapp: "", frota: "Carrinho Rosa, Moto Branca", status: "ativo", validade: Date.now() + (365*24*60*60*1000)
-        });
-
-        const ref2 = doc(collection(db, "usuarios"));
-        batch.set(ref2, {
-            nome: "Thallys", usuario: "Thallys", pass: "1234", cidade: "Cedro", preco: 1.0, 
-            whatsapp: "", frota: "Carrinho Azul, Moto Preta", status: "ativo", validade: Date.now() + (365*24*60*60*1000)
-        });
-
-        await batch.commit();
-        alert("Usuários criados!");
-    };
-
-    window.delUser = async(id) => { if(confirm("Remover usuário?")) await deleteDoc(doc(db, "usuarios", id)); };
-    window.renovarUser = async(id) => {
-        const dias = parseInt(document.getElementById(`add-dias-${id}`).value);
-        if(!dias) return alert("Digite a quantidade de dias");
-        const novaValidade = Date.now() + (dias * 24 * 60 * 60 * 1000);
-        await updateDoc(doc(db, "usuarios", id), { validade: novaValidade, status: 'ativo' });
-        alert("Assinatura renovada!");
-    };
-    window.ativarUser = async(id) => {
-        if(confirm("Aprovar este usuário?")) {
-            await updateDoc(doc(db, "usuarios", id), { status: 'ativo', validade: Date.now() + 86400000 }); 
-        }
-    };
-
-    window.setQuickTime = (v) => document.getElementById('tempo-padrao').value = v;
-    window.toggleMasterPanel = () => { const p=document.getElementById('master-panel'); p.style.display = p.style.display==='block'?'none':'block'; };
-    window.switchScreen = (s) => { document.getElementById('login-screen').style.display = s==='login'?'flex':'none'; document.getElementById('register-screen').style.display = s==='register'?'flex':'none'; };
-
-    window.cadastrarUsuario = async () => {
-        const nome = document.getElementById('reg-nome').value;
-        const user = document.getElementById('reg-user').value;
-        const pass = document.getElementById('reg-pass').value;
-        const cidade = document.getElementById('reg-cidade').value;
-        const preco = parseFloat(document.getElementById('reg-preco').value);
-        const zap = document.getElementById('reg-zap').value;
-        const frota = document.getElementById('reg-frota').value;
-
-        if(!nome || !user || !pass || !preco || !frota) return alert("Preencha tudo!");
-
-        await addDoc(collection(db,"usuarios"), {
-            nome, usuario: user, pass, cidade, preco, whatsapp: zap, frota, 
-            status: 'pendente', validade: 0 
-        }); 
-        alert("Solicitação enviada! Aguarde aprovação do Jeday."); 
-        window.switchScreen('login');
-    };
-
-    setInterval(() => document.getElementById('relogio').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 1000);
-/* =========================
-   ALERTA + NOTIFICAÇÃO
-   (NÃO ALTERA NADA EXISTENTE)
-========================= */
-
-// Guarda quais IDs já alertaram (para não repetir)
+// evita repetir alerta pro mesmo doc
 window.__alertedExpired = new Set();
-
-// Cache local dos "ativos" do usuário logado
+// cache local dos ativos do usuário logado
 window.__ativosCache = new Map();
-
-// Controle de permissão de notificação
+// controle permissão
 window.__notifAsked = false;
 
-// 1) Pede permissão de notificação quando detectar login (sem editar loginSucesso)
 window.__ensureNotificationPermission = async () => {
   if (window.__notifAsked) return;
   if (!("Notification" in window)) return;
-  // só pede quando já existe usuário logado
   if (!USER_DATA) return;
 
   window.__notifAsked = true;
   try { await Notification.requestPermission(); } catch (e) {}
 };
 
-// 2) Envia notificação do navegador (funciona também no celular, via Chrome/Safari, quando suportado)
 window.__sendBrowserNotification = (title, body) => {
   if (!("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
-
   try {
     new Notification(title, {
       body,
@@ -921,7 +974,6 @@ window.__sendBrowserNotification = (title, body) => {
   } catch (e) {}
 };
 
-// 3) Toca som (pode depender de interação do usuário no navegador)
 window.__playAlertSound = () => {
   const a = document.getElementById("alert-sound");
   if (!a) return;
@@ -929,14 +981,30 @@ window.__playAlertSound = () => {
   a.play().catch(() => {});
 };
 
-// 4) Cria e empilha o modal vermelho pulsante
+// VOZ: fala o veículo encerrado
+window.__speakExpiredVehicle = (veiculo) => {
+  if (!("speechSynthesis" in window)) return;
+
+  const msg = `Atenção. O veículo ${veiculo} encerrou.`;
+  try {
+    // corta fala anterior pra ficar bem "sirene"
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(msg);
+    u.lang = "pt-BR";
+    u.rate = 1.02;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+    window.speechSynthesis.speak(u);
+  } catch (e) {}
+};
+
 window.__pushExpiredModal = (id, veiculo, valor) => {
   const overlay = document.getElementById("alert-overlay");
   if (!overlay) return;
 
   overlay.style.display = "flex";
 
-  // evita duplicar card se já existir
+  // evita duplicar
   if (document.getElementById(`alert-card-${id}`)) return;
 
   const card = document.createElement("div");
@@ -946,7 +1014,7 @@ window.__pushExpiredModal = (id, veiculo, valor) => {
   card.innerHTML = `
     <div class="alert-title">🚨 TEMPO ESGOTADO</div>
     <div class="alert-vehicle">${veiculo}</div>
-    <div style="font-size:14px; color:inherit;">Valor a pagar:</div>
+    <div style="font-size:14px;">Valor a pagar:</div>
     <div class="alert-amount">R$ ${Number(valor).toFixed(2)}</div>
 
     <div class="alert-actions">
@@ -954,13 +1022,12 @@ window.__pushExpiredModal = (id, veiculo, valor) => {
       <button class="alert-btn alert-btn-npaid" onclick="window.__resolveExpired('${id}', 'Não')">❌ NÃO PAGO</button>
     </div>
 
-    <div class="alert-sub">Marque o status aqui no alerta (pode haver vários empilhados).</div>
+    <div class="alert-sub">Se vários encerrarem ao mesmo tempo, ficam empilhados aqui.</div>
   `;
 
   overlay.appendChild(card);
 };
 
-// 5) Fecha um card; se não sobrar nenhum, fecha overlay
 window.__removeExpiredModal = (id) => {
   const card = document.getElementById(`alert-card-${id}`);
   if (card) card.remove();
@@ -970,42 +1037,65 @@ window.__removeExpiredModal = (id) => {
   if (overlay.children.length === 0) overlay.style.display = "none";
 };
 
-// 6) Ao clicar no modal: atualiza "pago" no Firestore e fecha só aquele alerta
+// marca pago/não pago direto no doc ativo
 window.__resolveExpired = async (id, pago) => {
   try {
     await updateDoc(doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), { pago });
   } catch (e) {
-    // se o doc não existir mais, só fecha o alerta
+    // se já foi removido, só fecha
   } finally {
     window.__removeExpiredModal(id);
   }
 };
 
-// 7) Calcula "restante" exatamente na lógica do seu sistema (sem alterar seu timer)
 window.__calcRestMs = (d) => {
-  // Se livre, não expira
   if (d.modalidadeLivre) return Infinity;
-
   if (d.pausado) return Number(d.msRestantes ?? 0);
-
-  // quando não pausado, o seu código usa fimTimestamp - Date.now()
   return Number(d.fimTimestamp ?? 0) - Date.now();
 };
 
-// 8) Inicia o watcher: usa onSnapshot separado (não mexe no iniciarCards)
 window.__startExpiredWatcher = () => {
-  // evita iniciar duas vezes
   if (window.__expiredWatcherStarted) return;
   window.__expiredWatcherStarted = true;
 
-  // roda um loop "leve" 2x por segundo pra detectar estourados
-  window.__expiredInterval = setInterval(() => {
+  // snapshot separado (não mexe no iniciarCards)
+  const tryAttachSnapshot = () => {
+    if (!USER_DATA) return;
+
+    const colRef = collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`);
+    onSnapshot(colRef, (snap) => {
+      const idsNow = new Set();
+
+      snap.forEach((docSnap) => {
+        idsNow.add(docSnap.id);
+        window.__ativosCache.set(docSnap.id, docSnap.data());
+      });
+
+      // limpa os que saíram
+      for (const id of Array.from(window.__ativosCache.keys())) {
+        if (!idsNow.has(id)) {
+          window.__ativosCache.delete(id);
+          window.__alertedExpired.delete(id);
+          window.__removeExpiredModal(id);
+        }
+      }
+    });
+  };
+
+  // tenta anexar já e re-tenta até ter USER_DATA
+  tryAttachSnapshot();
+  const retry = setInterval(() => {
+    if (!USER_DATA) return;
+    tryAttachSnapshot();
+    clearInterval(retry);
+  }, 800);
+
+  // loop de detecção
+  setInterval(() => {
     if (!USER_DATA) return;
 
     for (const [id, d] of window.__ativosCache.entries()) {
-      // sem dados, pula
       if (!d) continue;
-      // não alerta em LIVRE
       if (d.modalidadeLivre) continue;
 
       const rest = window.__calcRestMs(d);
@@ -1013,62 +1103,29 @@ window.__startExpiredWatcher = () => {
         if (window.__alertedExpired.has(id)) continue;
         window.__alertedExpired.add(id);
 
-        // valor a pagar: no seu sistema o valor final é calculado no FIM,
-        // mas aqui (alerta) mostramos o contratado (minutosContratados * precoBase)
         const minutos = Number(d.minutosContratados ?? 0);
         const preco = Number(d.precoBase ?? 0);
         const valor = Math.max(0, minutos * preco);
+        const veiculo = d.veiculo || "Veículo";
 
-        // notificação + som + modal
         window.__ensureNotificationPermission();
-        window.__sendBrowserNotification("🚨 TEMPO ESGOTADO!", `Veículo: ${d.veiculo} | Cobrar: R$ ${valor.toFixed(2)}`);
+        window.__sendBrowserNotification("🚨 TEMPO ESGOTADO!", `Veículo: ${veiculo} | Cobrar: R$ ${valor.toFixed(2)}`);
         window.__playAlertSound();
-        window.__pushExpiredModal(id, d.veiculo || "Veículo", valor);
+        window.__speakExpiredVehicle(veiculo);
+        window.__pushExpiredModal(id, veiculo, valor);
       }
     }
   }, 500);
-
-  // Mantém cache atualizado via Firestore
-  const tickStartSnapshot = () => {
-    if (!USER_DATA) return;
-
-    const colRef = collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`);
-    onSnapshot(colRef, (snap) => {
-      const idsNow = new Set();
-      snap.forEach((docSnap) => {
-        idsNow.add(docSnap.id);
-        window.__ativosCache.set(docSnap.id, docSnap.data());
-      });
-
-      // remove do cache o que saiu
-      for (const id of Array.from(window.__ativosCache.keys())) {
-        if (!idsNow.has(id)) {
-          window.__ativosCache.delete(id);
-          window.__alertedExpired.delete(id);      // se voltar a existir, pode alertar de novo
-          window.__removeExpiredModal(id);         // se finalizou e sumiu, fecha alerta pendente
-        }
-      }
-    });
-  };
-
-  // tenta começar já e também re-tenta após login
-  tickStartSnapshot();
-  window.__expiredSnapshotRetry = setInterval(() => tickStartSnapshot(), 1500);
 };
 
-// 9) Dispara o watcher assim que tiver USER_DATA (sem editar nada do login)
-window.__bootExpiredSystem = () => {
+// inicia automaticamente após login (sem alterar loginSucesso)
+const boot = setInterval(() => {
+  if (!USER_DATA) return;
   window.__ensureNotificationPermission();
   window.__startExpiredWatcher();
-};
+  clearInterval(boot);
+}, 400);
 
-// roda em loop até detectar login e iniciar tudo (não altera seu fluxo)
-window.__bootInterval = setInterval(() => {
-  if (!USER_DATA) return;
-  window.__bootExpiredSystem();
-  // depois que iniciou, pode parar
-  clearInterval(window.__bootInterval);
-}, 500);
 
 </script>
 </body>
