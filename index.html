@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cedro Aventuras - MASTER V22</title>
     <style>
+
         :root { --primary: #2d5a27; --danger: #e74c3c; --bg: #f4f6f8; --insta: #8e44ad; --gold: #d4af37; --dark: #2c3e50; --card-bg: #ffffff; --text: #333333; }
 
         /* MODO ESCURO */
@@ -93,9 +94,188 @@
             .print-bold { font-weight: bold; font-size: 14px; }
             .print-big { font-size: 18px; font-weight: bold; margin: 5px 0; }
         }
+/* =========================
+   ALERTA: TEMPO ESGOTADO
+   (NÃO ALTERA NADA EXISTENTE)
+========================= */
+#alert-overlay {
+  position: fixed;
+  inset: 0;
+  background:(0,0,0,0.75);
+  z-index: 9999;
+  display: none;              /* liga quando tiver alertas */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.alert {
+  width: min(420px, 92vw);
+  background: #fff;
+  border: 6px solid #ff0000;
+  border-radius: 16px;
+  padding: 18px;
+  margin: 10px 0;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(255,0,0,0.45);
+  animation: alertPulse 1.1s infinite;
+}
+
+keyframes alertPulse {
+  0%   { transform: scale(1);   box-shadow: 0 0 0 0 rgba(255,0,0,0.65); }
+  70%  { transform: scale(1.02); box-shadow: 0 0 0 18px rgba(255,0,0,0); }
+  100% { transform: scale(1);   box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+}
+
+.alert-title {
+  font-weight: 900;
+  font-size: 18px;
+  color: #c62828;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.alert-vehicle {
+  font-weight: 900;
+  font-size: 22px;
+  color: #111;
+  text-transform: uppercase;
+  margin: 8px 0;
+}
+
+.alert-amount {
+  font-weight: 900;
+  font-size: 34px;
+  color: #2e7d32;
+  margin: 10px 0 14px;
+}
+
+.alert-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.alert-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+}
+
+.alert-btn-paid { background: #2ecc71; }
+.alert-btn-npaid { background: #e74c3c; }
+
+.alert-sub {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #555;
+}
+
+body.dark-mode .alert-card {
+  background: #1e1e1e;
+  color: #eee;
+}
+body.dark-mode .alert-vehicle { color: #fff; }
+body.dark-mode .alert-sub { color: #bbb; }
+
+/* =========================
+   OVERRIDE: ALERTA AINDA MAIS CHAMATIVO
+   (apenas acrescenta e sobrescreve estilos)
+========================= */
+
+#alert-overlay{
+  background: rgba(0,0,0,0.88) !important;
+  backdrop-filter: blur(2px);
+}
+
+.alert-card{
+  background: radial-gradient(circle at top, #ff4d4d 0%, #b30000 55%, #6b0000 100%) !important;
+  color: #fff !important;
+  border: 6px solid #fff !important;
+
+  box-shadow:
+    0 0 0 6px rgba(255, 0, 0, 0.45),
+    0 0 30px rgba(255, 0, 0, 0.9),
+    0 0 80px rgba(255, 0, 0, 0.6) !important;
+
+  animation: alertPulseHard 0.85s infinite, alertShake 0.22s infinite alternate;
+}
+
+@keyframes alertPulseHard{
+  0%   { transform: scale(1);    filter: brightness(1);   }
+  60%  { transform: scale(1.04); filter: brightness(1.12); }
+  100% { transform: scale(1);    filter: brightness(1);   }
+}
+
+@keyframes alertShake{
+  0%   { transform: translateX(-1px); }
+  100% { transform: translateX(1px); }
+}
+
+.alert-title{
+  color: #fff !important;
+  font-size: 20px !important;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.35);
+}
+
+.alert-vehicle{
+  color: #fff !important;
+  font-size: 24px !important;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.35);
+}
+
+.alert-amount{
+  color: #fff !important;
+  font-size: 38px !important;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.25);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: inline-block;
+}
+
+.alert-btn{
+  box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+  transform: translateY(0);
+}
+
+.alert-btn:active{
+  transform: translateY(2px);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+}
+
+.alert-btn-paid{
+  background: linear-gradient(180deg, #2ecc71 0%, #1e9e52 100%) !important;
+}
+
+.alert-btn-npaid{
+  background: linear-gradient(180deg, #ff3b30 0%, #c62828 100%) !important;
+}
+
+.alert-sub{
+  color: rgba(255,255,255,0.9) !important;
+}
+
+
     </style>
 </head>
 <body>
+
+<!-- =========================
+     ALERTA: TEMPO ESGOTADO
+     (NÃO ALTERA NADA EXISTENTE)
+========================= -->
+<audio id="alert-sound" preload="auto"
+  src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+<div id="alert-overlay"></div>
 
 <!-- ÁREA DE IMPRESSÃO -->
 <div id="print-area">
@@ -703,6 +883,193 @@
     };
 
     setInterval(() => document.getElementById('relogio').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 1000);
+/* =========================
+   ALERTA + NOTIFICAÇÃO
+   (NÃO ALTERA NADA EXISTENTE)
+========================= */
+
+// Guarda quais IDs já alertaram (para não repetir)
+window.__alertedExpired = new Set();
+
+// Cache local dos "ativos" do usuário logado
+window.__ativosCache = new Map();
+
+// Controle de permissão de notificação
+window.__notifAsked = false;
+
+// 1) Pede permissão de notificação quando detectar login (sem editar loginSucesso)
+window.__ensureNotificationPermission = async () => {
+  if (window.__notifAsked) return;
+  if (!("Notification" in window)) return;
+  // só pede quando já existe usuário logado
+  if (!USER_DATA) return;
+
+  window.__notifAsked = true;
+  try { await Notification.requestPermission(); } catch (e) {}
+};
+
+// 2) Envia notificação do navegador (funciona também no celular, via Chrome/Safari, quando suportado)
+window.__sendBrowserNotification = (title, body) => {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+
+  try {
+    new Notification(title, {
+      body,
+      icon: "https://cdn-icons-png.flaticon.com/512/106/106703.png"
+    });
+  } catch (e) {}
+};
+
+// 3) Toca som (pode depender de interação do usuário no navegador)
+window.__playAlertSound = () => {
+  const a = document.getElementById("alert-sound");
+  if (!a) return;
+  a.currentTime = 0;
+  a.play().catch(() => {});
+};
+
+// 4) Cria e empilha o modal vermelho pulsante
+window.__pushExpiredModal = (id, veiculo, valor) => {
+  const overlay = document.getElementById("alert-overlay");
+  if (!overlay) return;
+
+  overlay.style.display = "flex";
+
+  // evita duplicar card se já existir
+  if (document.getElementById(`alert-card-${id}`)) return;
+
+  const card = document.createElement("div");
+  card.className = "alert-card";
+  card.id = `alert-card-${id}`;
+
+  card.innerHTML = `
+    <div class="alert-title">🚨 TEMPO ESGOTADO</div>
+    <div class="alert-vehicle">${veiculo}</div>
+    <div style="font-size:14px; color:inherit;">Valor a pagar:</div>
+    <div class="alert-amount">R$ ${Number(valor).toFixed(2)}</div>
+
+    <div class="alert-actions">
+      <button class="alert-btn alert-btn-paid" onclick="window.__resolveExpired('${id}', 'Sim')">✅ PAGO</button>
+      <button class="alert-btn alert-btn-npaid" onclick="window.__resolveExpired('${id}', 'Não')">❌ NÃO PAGO</button>
+    </div>
+
+    <div class="alert-sub">Marque o status aqui no alerta (pode haver vários empilhados).</div>
+  `;
+
+  overlay.appendChild(card);
+};
+
+// 5) Fecha um card; se não sobrar nenhum, fecha overlay
+window.__removeExpiredModal = (id) => {
+  const card = document.getElementById(`alert-card-${id}`);
+  if (card) card.remove();
+
+  const overlay = document.getElementById("alert-overlay");
+  if (!overlay) return;
+  if (overlay.children.length === 0) overlay.style.display = "none";
+};
+
+// 6) Ao clicar no modal: atualiza "pago" no Firestore e fecha só aquele alerta
+window.__resolveExpired = async (id, pago) => {
+  try {
+    await updateDoc(doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id), { pago });
+  } catch (e) {
+    // se o doc não existir mais, só fecha o alerta
+  } finally {
+    window.__removeExpiredModal(id);
+  }
+};
+
+// 7) Calcula "restante" exatamente na lógica do seu sistema (sem alterar seu timer)
+window.__calcRestMs = (d) => {
+  // Se livre, não expira
+  if (d.modalidadeLivre) return Infinity;
+
+  if (d.pausado) return Number(d.msRestantes ?? 0);
+
+  // quando não pausado, o seu código usa fimTimestamp - Date.now()
+  return Number(d.fimTimestamp ?? 0) - Date.now();
+};
+
+// 8) Inicia o watcher: usa onSnapshot separado (não mexe no iniciarCards)
+window.__startExpiredWatcher = () => {
+  // evita iniciar duas vezes
+  if (window.__expiredWatcherStarted) return;
+  window.__expiredWatcherStarted = true;
+
+  // roda um loop "leve" 2x por segundo pra detectar estourados
+  window.__expiredInterval = setInterval(() => {
+    if (!USER_DATA) return;
+
+    for (const [id, d] of window.__ativosCache.entries()) {
+      // sem dados, pula
+      if (!d) continue;
+      // não alerta em LIVRE
+      if (d.modalidadeLivre) continue;
+
+      const rest = window.__calcRestMs(d);
+      if (rest <= 0) {
+        if (window.__alertedExpired.has(id)) continue;
+        window.__alertedExpired.add(id);
+
+        // valor a pagar: no seu sistema o valor final é calculado no FIM,
+        // mas aqui (alerta) mostramos o contratado (minutosContratados * precoBase)
+        const minutos = Number(d.minutosContratados ?? 0);
+        const preco = Number(d.precoBase ?? 0);
+        const valor = Math.max(0, minutos * preco);
+
+        // notificação + som + modal
+        window.__ensureNotificationPermission();
+        window.__sendBrowserNotification("🚨 TEMPO ESGOTADO!", `Veículo: ${d.veiculo} | Cobrar: R$ ${valor.toFixed(2)}`);
+        window.__playAlertSound();
+        window.__pushExpiredModal(id, d.veiculo || "Veículo", valor);
+      }
+    }
+  }, 500);
+
+  // Mantém cache atualizado via Firestore
+  const tickStartSnapshot = () => {
+    if (!USER_DATA) return;
+
+    const colRef = collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`);
+    onSnapshot(colRef, (snap) => {
+      const idsNow = new Set();
+      snap.forEach((docSnap) => {
+        idsNow.add(docSnap.id);
+        window.__ativosCache.set(docSnap.id, docSnap.data());
+      });
+
+      // remove do cache o que saiu
+      for (const id of Array.from(window.__ativosCache.keys())) {
+        if (!idsNow.has(id)) {
+          window.__ativosCache.delete(id);
+          window.__alertedExpired.delete(id);      // se voltar a existir, pode alertar de novo
+          window.__removeExpiredModal(id);         // se finalizou e sumiu, fecha alerta pendente
+        }
+      }
+    });
+  };
+
+  // tenta começar já e também re-tenta após login
+  tickStartSnapshot();
+  window.__expiredSnapshotRetry = setInterval(() => tickStartSnapshot(), 1500);
+};
+
+// 9) Dispara o watcher assim que tiver USER_DATA (sem editar nada do login)
+window.__bootExpiredSystem = () => {
+  window.__ensureNotificationPermission();
+  window.__startExpiredWatcher();
+};
+
+// roda em loop até detectar login e iniciar tudo (não altera seu fluxo)
+window.__bootInterval = setInterval(() => {
+  if (!USER_DATA) return;
+  window.__bootExpiredSystem();
+  // depois que iniciou, pode parar
+  clearInterval(window.__bootInterval);
+}, 500);
+
 </script>
 </body>
 
