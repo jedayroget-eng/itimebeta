@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cedro Aventuras - MASTER V27</title>
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --danger: #e74c3c;
+            --bg: #f4f6f8;
+            --insta: #8e44ad;
+            --gold: #d4af37;
+            --dark: #2c3e50;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --ctrl-bg: #f3e5f5;
+            --ctrl-border: #ce93d8;
+            --ctrl-title: #6c3483;
+            --ctrl-badge-bg: #6c3483;
+            --ctrl-total-bg: #6c3483;
+            --ctrl-input-border: #6c3483;
+            --ctrl-input-bg: white;
+            --ctrl-input-color: #6c3483;
+            --ctrl-limit-color: #888;
+            --id-badge-bg: #e3f2fd;
+            --id-badge-color: #1565c0;
+            --log-item-bg: #fff3cd;
+            --log-item-border: #f39c12;
+            --log-del-bg: #f8d7da;
+            --log-del-border: #c0392b;
+            --log-edit-bg: #d1ecf1;
+            --log-edit-border: #2980b9;
+            --time-feedback-add: #27ae60;
+            --time-feedback-rem: #e67e22;
+            --obs-input-bg: #f0f0f0;
+            --obs-input-border: #ccc;
+            --obs-input-color: #333;
+        }
+
+        /* MODO ESCURO */
+        body.dark-mode {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --dark: #000000;
+            --ctrl-bg: #2a1a35;
+            --ctrl-border: #7b3fa0;
+            --ctrl-title: #ce93d8;
+            --ctrl-badge-bg: #7b3fa0;
+            --ctrl-total-bg: #4a1a6a;
+            --ctrl-input-border: #7b3fa0;
+            --ctrl-input-bg: #1e1e1e;
+            --ctrl-input-color: #ce93d8;
+            --ctrl-limit-color: #aaa;
+            --id-badge-bg: #2c3e50;
+            --id-badge-color: #90caf9;
+            --log-item-bg: #2c2000;
+            --log-item-border: #f39c12;
+            --log-del-bg: #2c0a0a;
+            --log-del-border: #c0392b;
+            --log-edit-bg: #0a1f2c;
+            --log-edit-border: #2980b9;
+            --time-feedback-add: #2ecc71;
+            --time-feedback-rem: #f39c12;
+            --obs-input-bg: #333;
+            --obs-input-border: #555;
+            --obs-input-color: #eee;
+        }
+
+        body.dark-mode .panel, body.dark-mode header, body.dark-mode .card, body.dark-mode .login-box { background: var(--card-bg); color: var(--text); }
+        body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #333; color: white; border-color: #555; }
+        body.dark-mode .timer-big { color: #fff; }
+        body.dark-mode .card.paused { background: #2c2c20; border-left-color: #f1c40f; }
+        body.dark-mode table th { background: #333; color: #ccc; }
+        body.dark-mode table td { border-bottom: 1px solid #444; color: var(--text); }
+        body.dark-mode tr:last-child td { border-bottom: none; }
+        body.dark-mode #master-panel { background: #2a2510; }
+        body.dark-mode .modal-inner { background: var(--card-bg); color: var(--text); }
+
+        body { font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; color: var(--text); transition: background 0.3s; }
+
+        /* Telas de Acesso */
+        #login-screen, #register-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #1e3c1a, #2d5a27); position: fixed; width: 100%; z-index: 2000; top: 0; left: 0; }
+        .login-box { background: var(--card-bg); padding: 30px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+
+        .btn-main { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; margin-top: 10px; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-register { width: 100%; padding: 12px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 15px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-register:hover { background: #c0392b; }
+
+        /* App Principal */
+        #app-screen { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
+        header { background: var(--card-bg); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .panel { background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+
+        /* Painel Master */
+        #master-panel { display: none; border: 2px solid var(--gold); background: #fffcf5; }
+        .master-badge { background: var(--gold); color: #5a4a00; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .global-item { background: #333; color: #0f0; padding: 8px; border-radius: 5px; margin-bottom: 5px; font-family: monospace; font-size: 12px; border-left: 4px solid #0f0; }
+
+        /* Botões de Frota */
+        .frota-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .btn-frota { padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .cor-branco { background: #ffffff; color: #333; border: 2px solid #ddd; }
+        .cor-vermelho { background: #c0392b; color: white; }
+        .cor-amarelo { background: #f1c40f; color: #333; }
+        .cor-rosa { background: #e91e63; color: white; }
+        .cor-azul { background: #2980b9; color: white; }
+        .cor-verde { background: #27ae60; color: white; }
+        .cor-preto { background: #333; color: white; }
+        .cor-laranja { background: #e67e22; color: white; }
+        .cor-padrao { background: var(--primary); color: white; }
+
+        /* Cards */
+        .card { background: var(--card-bg); padding: 15px; border-radius: 15px; border-left: 8px solid var(--primary); margin-bottom: 15px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card.paused { background: #fffdf0; border-left-color: #f1c40f; }
+        .card.acabou { border-left-color: var(--danger) !important; animation: piscar 0.6s infinite alternate; }
+        @keyframes piscar { from { box-shadow: 0 0 8px rgba(231,76,60,0.4); } to { box-shadow: 0 0 20px rgba(231,76,60,0.9); } }
+
+        .timer-big { font-size: 48px; font-weight: 800; text-align: center; color: var(--text); margin: 5px 0; letter-spacing: -1px; position: relative; }
+        .timer-big.zerado { color: var(--danger) !important; }
+
+        /* Feedback de tempo adicionado/removido (persistente) */
+        .time-feedback-display {
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: -5px; /* Ajusta para ficar mais próximo do timer */
+            min-height: 18px; /* Garante espaço mesmo vazio */
+        }
+        .time-feedback-display.add { color: var(--time-feedback-add); }
+        .time-feedback-display.rem { color: var(--time-feedback-rem); }
+
+
+        .card-controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+        .btn-ctrl { padding: 10px 0; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; font-size: 12px; }
+
+        /* MINUTO CONTROLADO — input box */
+        .ctrl-box {
+            margin-top: 10px;
+            background: var(--ctrl-bg);
+            border: 2px solid var(--ctrl-border);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .ctrl-box label {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--ctrl-title);
+            margin: 0;
+            white-space: nowrap;
+        }
+        .ctrl-box input[type="number"] {
+            width: 70px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            border: 2px solid var(--ctrl-input-border);
+            border-radius: 8px;
+            padding: 6px;
+            margin: 0;
+            color: var(--ctrl-input-color);
+            background: var(--ctrl-input-bg);
+        }
+        .ctrl-box span.ctrl-limit {
+            font-size: 11px;
+            color: var(--ctrl-limit-color);
+        }
+        .ctrl-box button {
+            background: var(--ctrl-badge-bg);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .ctrl-box button:active {
+            transform: scale(0.97);
+        }
+
+        /* ID Badge */
+        .id-badge { font-size: 10px; background: var(--id-badge-bg); color: var(--id-badge-color); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-family: monospace; }
+
+        /* TABELA */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        thead { background-color: #f0f0f0; border-bottom: 2px solid #ddd; }
+        body.dark-mode thead { background-color: #333; }
+        th { padding: 12px 8px; text-align: left; color: #555; font-weight: bold; text-transform: uppercase; font-size: 11px; }
+        body.dark-mode th { color: #ccc; }
+        td { padding: 12px 8px; border-bottom: 1px solid #eee; color: var(--text); }
+        body.dark-mode td { border-bottom: 1px solid #444; }
+        .valor-cell { font-weight: bold; color: var(--primary); }
+        .status-cell { font-size: 11px; padding: 4px 8px; border-radius: 12px; display: inline-block; cursor: pointer; }
+        .st-pago { background: #d4edda; color: #155724; }
+        .st-pend { background: #f8d7da; color: #721c24; }
+
+        /* Botão de exclusão no relatório */
+        .btn-del-hist-item {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        .btn-del-hist-item:hover { background: #c0392b; }
+
+
+        .total-box { background: var(--dark); color: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; margin-bottom: 15px; }
+        .assinatura-badge { font-size: 11px; background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 20px; border: 1px solid #c8e6c9; margin-top: 4px; display: inline-block; }
+        .assinatura-alert { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+
+        /* SEÇÃO MINUTOS CONTROLADOS NO RELATÓRIO */
+        .ctrl-section { background: var(--ctrl-bg); border: 1px solid var(--ctrl-border); border-radius: 10px; padding: 12px; margin-top: 10px; }
+        .ctrl-section-title { color: var(--ctrl-title); font-weight: bold; font-size: 13px; margin-bottom: 8px; }
+        .ctrl-total-box { background: var(--ctrl-total-bg); color: white; padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 14px; margin-top: 8px; }
+        .ctrl-min-badge { display: inline-block; background: var(--ctrl-badge-bg); color: white; font-size: 10px; padding: 2px 7px; border-radius: 10px; vertical-align: middle; }
+
+        /* Campo de observação no relatório */
+        .obs-input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--obs-input-border);
+            border-radius: 4px;
+            font-size: 12px;
+            background: var(--obs-input-bg);
+            color: var(--obs-input-color);
+            box-sizing: border-box;
+        }
+        .obs-input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        /* LOG DE AUDITORIA */
+        .log-item { font-size: 12px; background: var(--log-item-bg); border-left: 3px solid var(--log-item-border); padding: 8px; border-radius: 4px; margin-bottom: 5px; color: var(--text); }
+        .log-item.log-del { background: var(--log-del-bg); border-left-color: var(--log-del-border); }
+        .log-item.log-edit { background: var(--log-edit-bg); border-left-color: var(--log-edit-border); }
+
+        /* Modais */
+        #ticket-modal, #edit-user-modal, #audit-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; justify-content:center; align-items:center; }
+        .modal-inner { background: var(--card-bg); color: var(--text); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
+
+        /* NOTIFICAÇÃO TOAST */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+        .toast { background: #c0392b; color: white; padding: 14px 22px; border-radius: 12px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: slideDown 0.4s ease; max-width: 320px; text-align: center; pointer-events: all; }
+        .toast.sucesso { background: #27ae60; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Footer Suporte */
+        .footer-support { position: fixed; bottom: 0; left: 0; width: 100%; background: #25D366; color: white; text-align: center; padding: 10px; font-weight: bold; cursor: pointer; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; gap: 10px; }
+
+        /* IMPRESSÃO TÉRMICA */
+        #print-area { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { display: block; position: absolute; left: 0; top: 0; width: 58mm; font-family: 'Courier New', Courier, monospace; font-size: 12px; text-align: center; color: black; }
+            .print-bold { font-weight: bold; font-size: 14px; }
+            .print-big { font-size: 18px; font-weight: bold; margin: 5px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- ÁREA DE IMPRESSÃO -->
+<div id="print-area">
+    <div style="text-align:center">
+        -----------------------<br>
+        <b class="print-bold">Brinquedos Elétricos</b><br>
+        <span id="print-cidade">CEDRO</span><br>
+        -----------------------<br>
+        VOCÊ ACABOU DE COMPRAR<br>
+        <div class="print-big" id="print-tempo">10 MINUTOS</div>
+        <div class="print-big" id="print-valor">R$ 10,00</div>
+        <br>
+        ---------- P A G O ----------<br>
+        <br>
+        Obrigado pela preferência!<br>
+        Siga-nos no instagram para<br>
+        ganhar BÔNUS!!!<br>
+        -----------------------<br>
+        <small id="print-data">Data: 00/00/00 00:00</small>
+        <br><br>.
+    </div>
+</div>
+
+<!-- TELA DE LOGIN -->
+<div id="login-screen">
+    <div class="login-box">
+        <h2 style="color: var(--primary); margin:0 0 15px 0">🌲 Cedro Aventuras</h2>
+        <select id="login-cidade">
+            <option value="">Selecione sua Cidade</option>
+            <option>Cedro</option><option>Varzea Alegre</option><option>Icó</option><option>Iguatu</option>
+            <option>Lavras da Mangabeira</option><option>Fortaleza</option>
+        </select>
+        <input type="text" id="user" placeholder="Usuário">
+        <input type="password" id="pass" placeholder="Senha">
+        <button class="btn-main" onclick="window.tentarLogin()">ACESSAR SISTEMA</button>
+
+        <button class="btn-register" onclick="window.switchScreen('register')">
+            📝 SOLICITAR CADASTRO
+        </button>
+    </div>
+</div>
+
+<!-- TELA DE CADASTRO -->
+<div id="register-screen" style="display: none;">
+    <div class="login-box">
+        <h3 style="margin:0 0 15px 0">📝 Novo Parceiro</h3>
+        <input type="text" id="reg-nome" placeholder="Nome Completo">
+        <input type="text" id="reg-user" placeholder="Nome de Usuário (Login)">
+        <input type="password" id="reg-pass" placeholder="Crie uma Senha">
+        <select id="reg-cidade"><option>Cedro</option><option>Iguatu</option><option>Icó</option><option>Varzea Alegre</option></select>
+        <input type="number" id="reg-preco" placeholder="Preço do Minuto (Ex: 1.00)">
+        <input type="text" id="reg-zap" placeholder="WhatsApp (DDD + Número)">
+        <textarea id="reg-frota" placeholder="Veículos (Ex: Carrinho Branco, Moto Vermelha)"></textarea>
+        <button class="btn-main" onclick="window.cadastrarUsuario()">ENVIAR SOLICITAÇÃO</button>
+        <button onclick="window.switchScreen('login')" style="margin-top:15px; background:#666; border:none; color:white; padding:10px; border-radius:8px; width:100%; cursor:pointer">⬅️ VOLTAR</button>
+    </div>
+</div>
+
+<!-- TELA PRINCIPAL -->
+<div id="app-screen">
+    <header>
+        <div>
+            <div id="op-nome" style="font-weight: 800; font-size:16px">Usuario</div>
+            <div id="op-assinatura" class="assinatura-badge">Verificando assinatura...</div>
+        </div>
+        <div style="text-align:right; display:flex; align-items:center; gap:10px">
+            <button onclick="window.toggleDarkMode()" style="background:transparent; border:1px solid #ccc; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:14px">🌙</button>
+            <div>
+                <div id="relogio" style="font-weight:bold; font-size:18px">00:00</div>
+                <div id="btn-master-toggle" style="display:none; cursor:pointer; font-size:12px; color:var(--gold)" onclick="window.toggleMasterPanel()">👑 PAINEL JEDAY</div>
+            </div>
+        </div>
+        <button onclick="location.reload()" style="margin-left:10px; border:none; background:#eee; padding:8px 12px; border-radius:6px; color:#333">Sair</button>
+    </header>
+
+    <!-- Botão Vender Ticket -->
+    <div class="panel" style="background: #e3f2fd; border: 1px solid #90caf9; text-align:center">
+        <button onclick="window.abrirModalTicket()" style="background: #1976d2; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 14px; width: 100%;">🎟️ VENDER TICKET AVULSO</button>
+    </div>
+
+    <!-- PAINEL MASTER -->
+    <div id="master-panel" class="panel">
+        <h3 style="color:var(--gold); margin-top:0">👑 COMANDO GLOBAL</h3>
+        <div style="margin-bottom:15px">
+            <div style="font-size:12px; font-weight:bold; color:#666; margin-bottom:5px">🌍 BRINQUEDOS RODANDO AGORA:</div>
+            <div id="global-monitor">Carregando...</div>
+        </div>
+        <hr style="border:0; border-top:1px solid #ddd">
+        <!-- BOTÃO LOG DE AUDITORIA -->
+        <div style="margin-top:10px; margin-bottom:10px">
+            <button onclick="window.abrirAuditoria()" style="background:#e67e22; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; width:100%; cursor:pointer">🔍 LOG DE AUDITORIA (CLIENTE)</button>
+        </div>
+        <hr style="border:0; border-top:1px solid #ddd">
+        <div style="margin-top:15px">
+            <div style="font-size:12px; font-weight:bold; color:#666; margin-bottom:5px">👥 GESTÃO DE PARCEIROS:</div>
+            <div id="lista-usuarios-master"></div>
+        </div>
+    </div>
+
+    <!-- PAINEL INICIAR -->
+    <div class="panel">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
+            <input type="text" id="nome-crianca" placeholder="Nome da Criança">
+            <input type="text" id="nome-responsavel" placeholder="Responsável">
+        </div>
+        <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:15px">
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(5)">5m</button>
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(10)">10m</button>
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(15)">15m</button>
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(20)">20m</button>
+            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(30)">30m</button>
+            <button class="btn-ctrl" style="background:#2c3e50; flex:1" onclick="window.setQuickTime(9999)">LIVRE</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px">
+            <span>Tempo:</span>
+            <input type="number" id="tempo-padrao" value="10" style="width:60px; text-align:center; font-weight:bold">
+            <span style="font-size:12px; color:#666">minutos</span>
+        </div>
+        <div class="frota-grid" id="frota-dinamica"></div>
+    </div>
+
+    <div id="container-cards"></div>
+
+    <!-- RELATÓRIO -->
+    <div class="panel">
+        <div class="total-box">
+            <span>💰 FATURAMENTO (PAGO)</span>
+            <span id="total-valor">R$ 0,00</span>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center">
+            <input type="date" id="filtro-data" style="margin:0; flex:1" onchange="window.carregarHistorico()">
+            <button onclick="window.limparFiltroData()" style="background:#95a5a6; color:white; border:none; border-radius:6px; padding:10px; font-weight:bold; cursor:pointer; white-space:nowrap">Ver Tudo</button>
+            <select id="filtro-master-user" style="display:none; margin:0; flex:1" onchange="window.carregarHistorico()"></select>
+            <button id="btn-limpar-hist" onclick="window.limparHistorico()" style="display:none; background:var(--danger); color:white; border:none; border-radius:6px; padding:0 15px; font-weight:bold; cursor:pointer">🗑 LIMPAR</button>
+        </div>
+
+        <!-- TABELA PRINCIPAL -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Veículo</th>
+                        <th>ID</th>
+                        <th style="text-align:center">Tempo</th>
+                        <th style="text-align:right">Valor</th>
+                        <th style="text-align:center">Status</th>
+                        <th style="width:20px;"></th> <!-- Coluna para o botão de exclusão -->
+                    </tr>
+                </thead>
+                <tbody id="corpo-historico"></tbody>
+            </table>
+        </div>
+
+        <!-- SEÇÃO MINUTOS CONTROLADOS -->
+        <div class="ctrl-section" id="ctrl-section" style="display:none">
+            <div class="ctrl-section-title">🕹️ MINUTOS CONTROLADOS (Instrutor)</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Veículo</th>
+                            <th>ID</th>
+                            <th style="text-align:center">Min. Ctrl.</th>
+                            <th>Criança</th>
+                            <th>Obs.</th>
+                            <th style="width:20px;"></th> <!-- Coluna para o botão de exclusão -->
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-ctrl"></tbody>
+                </table>
+            </div>
+            <div class="ctrl-total-box">
+                <span>🕹️ TOTAL MIN. CONTROLADOS</span>
+                <span id="total-ctrl-min">0 min</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TICKET -->
+<div id="ticket-modal">
+    <div class="login-box" style="width:90%; max-width:300px">
+        <h3>🖨️ Imprimir Ticket</h3>
+        <input type="number" id="ticket-tempo" placeholder="Minutos" value="10">
+        <input type="number" id="ticket-valor" placeholder="Valor (R$)" value="10.00">
+        <button class="btn-main" onclick="window.imprimirTicketManual()">IMPRIMIR AGORA</button>
+        <button onclick="document.getElementById('ticket-modal').style.display='none'" style="margin-top:10px; background:transparent; border:none; color:#333; cursor:pointer">Cancelar</button>
+    </div>
+</div>
+
+<!-- MODAL EDITAR USUÁRIO -->
+<div id="edit-user-modal">
+    <div class="login-box" style="width:90%; max-width:350px; text-align:left">
+        <h3 style="margin:0 0 15px 0; text-align:center">✏️ Editar Usuário</h3>
+        <input type="hidden" id="edit-id">
+        <label>Nome:</label><input type="text" id="edit-nome">
+        <label>Usuário (Login):</label><input type="text" id="edit-user">
+        <label>Senha:</label><input type="text" id="edit-pass">
+        <label>Preço:</label><input type="number" id="edit-preco">
+        <label>WhatsApp:</label><input type="text" id="edit-zap">
+        <label>Frota:</label><textarea id="edit-frota" rows="3"></textarea>
+        <button class="btn-main" onclick="window.salvarEdicaoUser()">SALVAR ALTERAÇÕES</button>
+        <button onclick="document.getElementById('edit-user-modal').style.display='none'" style="margin-top:10px; width:100%; background:#ccc; border:none; padding:10px; border-radius:8px; cursor:pointer">Cancelar</button>
+    </div>
+</div>
+
+<!-- MODAL AUDITORIA -->
+<div id="audit-modal">
+    <div class="modal-inner">
+        <h3 style="margin:0 0 15px 0; text-align:center">🔍 Log de Auditoria - Cliente</h3>
+        <div id="audit-lista">Carregando...</div>
+        <button onclick="document.getElementById('audit-modal').style.display='none'" style="margin-top:15px; width:100%; background:#ccc; border:none; padding:10px; border-radius:8px; cursor:pointer">Fechar</button>
+    </div>
+</div>
+
+<!-- FOOTER SUPORTE -->
+<div class="footer-support" onclick="window.open('https://wa.me/5588981385466', '_blank')">
+    <span>🛠️ Suporte Técnico: Jeday Roget</span>
+    <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
+             query, orderBy, getDocs, where, getDoc, writeBatch }
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD3WIeOM21IkcjytZ9-We7vJjOV-dYq2IA",
+        authDomain: "cedro-aventuras.firebaseapp.com",
+        projectId: "cedro-aventuras",
+        storageBucket: "cedro-aventuras.firebasestorage.app",
+        messagingSenderId: "750741113990",
+        appId: "1:750741113990:web:35783abcde7f8eb6f6d507"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    let USER_DATA = null;
+
+    // ── contadores por tipo de veículo para gerar ID único na sessão ──
+    const contadoresID = {};
+
+    // ── controle de notificações já disparadas ──
+    const notificadosAcabou = new Set();
+
+    // =========================================================
+    // TOAST
+    // =========================================================
+    function showToast(msg, tipo = 'alerta', duracaoMs = 6000) {
+        const div = document.createElement('div');
+        div.className = `toast${tipo === 'sucesso' ? ' sucesso' : ''}`;
+        div.innerText = msg;
+        document.getElementById('toast-container').appendChild(div);
+        setTimeout(() => div.remove(), duracaoMs);
+    }
+
+    // =========================================================
+    // MODO ESCURO
+    // =========================================================
+    window.toggleDarkMode = () => document.body.classList.toggle('dark-mode');
+
+    // =========================================================
+    // GERADOR DE ID DO VEÍCULO
+    // prefixo de 2 letras + 5 dígitos: CB00001, CV00001, etc.
+    // =========================================================
+    function gerarPrefixo(nome) {
+        const t = nome.toLowerCase();
+        if (t.includes('carrinho') && t.includes('branc'))  return 'CB';
+        if (t.includes('carrinho') && t.includes('vermelh')) return 'CV';
+        if (t.includes('carrinho') && t.includes('amarel')) return 'CA';
+        if (t.includes('carrinho') && t.includes('rosa'))   return 'CR';
+        if (t.includes('carrinho') && t.includes('azul'))   return 'CZ';
+        if (t.includes('carrinho') && t.includes('verd'))   return 'CG';
+        if (t.includes('carrinho') && t.includes('pret'))   return 'CP';
+        if (t.includes('carrinho') && t.includes('laranj')) return 'CL';
+        if (t.includes('carrinho'))                          return 'CA'; // Default para carrinho
+        if (t.includes('triciclo') && t.includes('branc'))  return 'TB';
+        if (t.includes('triciclo') && t.includes('vermelh'))return 'TV';
+        if (t.includes('triciclo') && t.includes('amarel')) return 'TA';
+        if (t.includes('triciclo') && t.includes('rosa'))   return 'TR';
+        if (t.includes('triciclo') && t.includes('azul'))   return 'TZ';
+        if (t.includes('triciclo'))                          return 'TR'; // Default para triciclo
+        if (t.includes('moto') && t.includes('branc'))      return 'MB';
+        if (t.includes('moto') && t.includes('vermelh'))    return 'MV';
+        if (t.includes('moto') && t.includes('pret'))       return 'MP';
+        if (t.includes('moto'))                              return 'MT'; // Default para moto
+        if (t.includes('patinete'))                          return 'PT';
+        if (t.includes('quadriciclo'))                       return 'QD';
+        if (t.includes('jipe'))                              return 'JP';
+        // fallback: 2 primeiras letras maiúsculas
+        return nome.replace(/\s/g,'').substring(0,2).toUpperCase();
+    }
+
+    function gerarIDVeiculo(nomeVeiculo) {
+        const pref = gerarPrefixo(nomeVeiculo);
+        contadoresID[pref] = (contadoresID[pref] || 0) + 1;
+        return `${pref}${String(contadoresID[pref]).padStart(5,'0')}`;
+    }
+
+    // =========================================================
+    // AUDITORIA
+    // =========================================================
+    async function gravarAuditoria(tipo, descricao, dadosAntes = null) {
+        if (!USER_DATA) return;
+        if (USER_DATA.usuario !== 'Cliente' && USER_DATA.nome !== 'Cliente') return; // Apenas o usuário "Cliente" é auditado
+        await addDoc(collection(db, 'auditoria_cliente'), {
+            tipo, descricao,
+            dadosAntes: dadosAntes ? JSON.stringify(dadosAntes) : null,
+            usuario: USER_DATA.usuario || USER_DATA.nome,
+            cidade:  USER_DATA.cidade,
+            timestamp: Date.now()
+        });
+    }
+
+    // =========================================================
+    // LOGIN
+    // =========================================================
+    window.tentarLogin = async () => {
+        const cidade = document.getElementById('login-cidade').value;
+        const user   = document.getElementById('user').value;
+        const pass   = document.getElementById('pass').value;
+
+        // JEDAY MASTER — senha 104101
+        if (user === "Jeday" && pass === "104101") {
+            loginSucesso({
+                nome: "Jeday", usuario: "Jeday", cidade: "Cedro",
+                status: "ativo", isMaster: true,
+                frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete",
+                preco: 1, validade: 9999999999999
+            });
+            return;
+        }
+
+        // CLIENTE (operador dos brinquedos de Jeday)
+        if (user === "Cliente" && pass === "1234") {
+            loginSucesso({
+                nome: "Jeday",          // Usa a coleção de Jeday para ativos e histórico
+                usuario: "Cliente",     // Identidade real para auditoria
+                nomeExibido: "Cliente", // Nome a ser exibido na tela
+                cidade: "Cedro", status: "ativo", isMaster: false, isCliente: true,
+                frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete",
+                preco: 1, validade: 9999999999999
+            });
+            return;
+        }
+
+        let q = query(collection(db,"usuarios"), where("usuario","==",user), where("cidade","==",cidade));
+        let snap = await getDocs(q);
+        if (snap.empty) {
+            q = query(collection(db,"usuarios"), where("nome","==",user), where("cidade","==",cidade));
+            snap = await getDocs(q);
+        }
+        if (snap.empty || snap.docs[0].data().pass !== pass) return alert("Dados incorretos.");
+
+        const dados = snap.docs[0].data();
+        if (dados.status !== "ativo") return alert("Aguarde a aprovação do Jeday.");
+        if (dados.validade && Date.now() > dados.validade)
+            return alert("SUA ASSINATURA EXPIROU! Entre em contato com Jeday.");
+
+        loginSucesso({ ...dados, id: snap.docs[0].id });
+    };
+
+    function loginSucesso(dados) {
+        USER_DATA = dados;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display   = 'block';
+        document.getElementById('op-nome').innerText = dados.nomeExibido || dados.nome;
+
+        if (USER_DATA.isMaster) {
+            document.getElementById('op-assinatura').innerText = "👑 Acesso Vitalício";
+            document.getElementById('btn-master-toggle').style.display = 'block';
+            document.getElementById('filtro-master-user').style.display = 'block';
+            document.getElementById('btn-limpar-hist').style.display = 'block';
+            iniciarMasterListeners();
+        } else if (USER_DATA.isCliente) {
+            document.getElementById('op-assinatura').innerText = "🛂 Operador Cliente";
+        } else {
+            const dias = Math.ceil((USER_DATA.validade - Date.now()) / 86400000);
+            const el = document.getElementById('op-assinatura');
+            el.innerText = `⏳ ${dias} dias restantes`;
+            if (dias <= 3) el.classList.add('assinatura-alert');
+        }
+
+        montarFrota();
+        iniciarCards();
+        const hoje = new Date().toISOString().split('T')[0];
+        document.getElementById('filtro-data').value = hoje;
+        window.carregarHistorico();
+    }
+
+    // =========================================================
+    // FROTA
+    // =========================================================
+    function montarFrota() {
+        const div = document.getElementById('frota-dinamica');
+        div.innerHTML = "";
+        USER_DATA.frota.split(',').forEach(item => {
+            const nome = item.trim();
+            const cor  = descobrirCor(nome);
+            div.innerHTML += `<button class="btn-frota ${cor}" onclick="window.iniciar('${nome}')">${nome}</button>`;
+        });
+    }
+
+    function descobrirCor(t) {
+        t = t.toLowerCase();
+        if (t.includes('vermelh')) return 'cor-vermelho';
+        if (t.includes('branc'))   return 'cor-branco';
+        if (t.includes('amarel'))  return 'cor-amarelo';
+        if (t.includes('rosa'))    return 'cor-rosa';
+        if (t.includes('azul'))    return 'cor-azul';
+        if (t.includes('verd'))    return 'cor-verde';
+        if (t.includes('pret'))    return 'cor-preto';
+        if (t.includes('laranj'))  return 'cor-laranja';
+        return 'cor-padrao';
+    }
+
+    // =========================================================
+    // CARDS
+    // =========================================================
+    window.iniciar = async (veiculo) => {
+        const min   = parseInt(document.getElementById('tempo-padrao').value);
+        const agora = Date.now();
+        const idVeiculo = gerarIDVeiculo(veiculo);
+
+        await addDoc(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), {
+            veiculo, idVeiculo,
+            crianca: document.getElementById('nome-crianca').value || "Cliente",
+            timestamp: agora,
+            fimTimestamp: agora + (min * 60000),
+            minutosContratados: min,
+            pago: "Não", pausado: false,
+            msRestantes: min * 60000,
+            totalMsPausado: 0,
+            precoBase: USER_DATA.preco,
+            modalidadeLivre: min >= 9999,
+            minutosControlados: 0,
+            tempoAjustado: 0 // Novo campo para feedback de tempo
+        });
+        document.getElementById('nome-crianca').value = "";
+    };
+
+    function iniciarCards() {
+        onSnapshot(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), (snap) => {
+            const div    = document.getElementById('container-cards');
+            const ativos = snap.docs.map(d => d.id);
+
+            // Remove cards que sumiram
+            document.querySelectorAll('.card').forEach(c => {
+                const id = c.id.replace('c-','');
+                if (!ativos.includes(id)) {
+                    if (window[`tm-${id}`]) clearInterval(window[`tm-${id}`]);
+                    c.remove();
+                }
+            });
+
+            snap.docs.forEach(docSnap => {
+                const d  = docSnap.data();
+                const id = docSnap.id;
+                let el   = document.getElementById(`c-${id}`);
+
+                if (!el) {
+                    div.insertAdjacentHTML('beforeend', `
+                        <div class="card" id="c-${id}">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                                <div>
+                                    <b>${d.veiculo}</b>
+                                    <span class="id-badge">${d.idVeiculo || '—'}</span><br>
+                                    <small>${d.crianca}</small>
+                                </div>
+                                <button id="pg-${id}" onclick="window.pg('${id}')"
+                                    style="border:none; border-radius:5px; font-weight:bold; cursor:pointer; padding:5px 10px">
+                                </button>
+                            </div>
+
+                            <div class="timer-big" id="t-${id}">00:00</div>
+                            <div class="time-feedback-display" id="tf-${id}"></div> <!-- Feedback de tempo -->
+
+                            <div class="card-controls">
+                                <button class="btn-ctrl" style="background:#e67e22" onclick="window.add('${id}',-1)">-1m</button>
+                                <button class="btn-ctrl" style="background:#27ae60" onclick="window.add('${id}',1)">+1m</button>
+                                <button class="btn-ctrl" style="background:var(--insta)" onclick="window.addBonus('${id}')">🎁 20%</button>
+                                <button class="btn-ctrl" style="background:#2980b9" id="ps-${id}" onclick="window.ps('${id}')">⏸</button>
+                                <button class="btn-ctrl" style="background:#c0392b" onclick="window.fim('${id}')">FIM</button>
+                            </div>
+
+                            <!-- CAIXA MINUTO CONTROLADO -->
+                            <div class="ctrl-box">
+                                <label>🕹️ Min. Controlados:</label>
+                                <input
+                                    type="number"
+                                    id="mc-input-${id}"
+                                    min="0"
+                                    value="${d.minutosControlados || 0}"
+                                    oninput="window.setCtrl('${id}', this.value)"
+                                >
+                                <span class="ctrl-limit" id="mc-limit-${id}">
+                                    de 0 min rodados
+                                </span>
+                            </div>
+                        </div>
+                    `);
+                    el = document.getElementById(`c-${id}`);
+                }
+
+                // Atualiza botão de pagamento
+                const btnPg = document.getElementById(`pg-${id}`);
+                btnPg.innerText        = d.pago === 'Sim' ? '✅ PAGO' : 'PENDENTE';
+                btnPg.style.background = d.pago === 'Sim' ? '#d4edda' : '#f8d7da';
+                btnPg.style.color      = d.pago === 'Sim' ? '#155724' : '#721c24';
+
+                // Pausa
+                const psBtn = document.getElementById(`ps-${id}`);
+                if (psBtn) psBtn.innerText = d.pausado ? '▶' : '⏸';
+                el.classList.toggle('paused', d.pausado);
+
+                // Atualiza o input de minutos controlados
+                const mcInput = document.getElementById(`mc-input-${id}`);
+                if (mcInput && document.activeElement !== mcInput) { // Evita sobrescrever enquanto o usuário digita
+                    mcInput.value = d.minutosControlados || 0;
+                }
+
+                // Atualiza feedback de tempo ajustado
+                const tfDisplay = document.getElementById(`tf-${id}`);
+                if (tfDisplay) {
+                    if (d.tempoAjustado > 0) {
+                        tfDisplay.innerText = `+${d.tempoAjustado} min`;
+                        tfDisplay.className = 'time-feedback-display add';
+                    } else if (d.tempoAjustado < 0) {
+                        tfDisplay.innerText = `${d.tempoAjustado} min`;
+                        tfDisplay.className = 'time-feedback-display rem';
+                    } else {
+                        tfDisplay.innerText = '';
+                        tfDisplay.className = 'time-feedback-display';
+                    }
+                }
+
+
+                // Timer
+                if (window[`tm-${id}`]) clearInterval(window[`tm-${id}`]);
+                let jaNotificou = notificadosAcabou.has(id);
+
+                window[`tm-${id}`] = setInterval(() => {
+                    const timerEl = document.getElementById(`t-${id}`);
+                    const cardEl  = document.getElementById(`c-${id}`);
+                    const limEl   = document.getElementById(`mc-limit-${id}`);
+                    const mcInp   = document.getElementById(`mc-input-${id}`);
+                    if (!timerEl || !cardEl) { clearInterval(window[`tm-${id}`]); return; }
+
+                    // Calcula tempo decorrido real
+                    const decorrido = Date.now() - d.timestamp - (d.totalMsPausado || 0);
+                    const minsRodados = d.modalidadeLivre
+                        ? Math.floor(decorrido / 60000)
+                        : Math.min(d.minutosContratados, Math.floor(decorrido / 60000));
+
+                    // Atualiza label do limite
+                    if (limEl) limEl.innerText = `de ${minsRodados} min rodados`;
+
+                    // Sincroniza max do input com o que foi rodado
+                    if (mcInp) mcInp.max = minsRodados;
+
+                    // Exibe o timer
+                    let rest;
+                    if (d.modalidadeLivre) {
+                        rest = decorrido;
+                    } else {
+                        rest = d.pausado ? d.msRestantes : (d.fimTimestamp - Date.now());
+                        rest = Math.max(0, rest);
+                    }
+                    const s = Math.floor(rest / 1000);
+                    timerEl.innerText = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+
+                    // Notificação de fim
+                    if (!d.modalidadeLivre && !d.pausado && rest <= 0) {
+                        timerEl.classList.add('zerado');
+                        cardEl.classList.add('acabou');
+                        if (!jaNotificou) {
+                            jaNotificou = true;
+                            notificadosAcabou.add(id);
+                            showToast(`⏰ ${d.veiculo} (${d.idVeiculo || ''}) — Tempo esgotado! Chame a criança.`, 'alerta', 8000);
+                            try {
+                                const utterance = new SpeechSynthesisUtterance(
+                                    `Atenção! O tempo do ${d.veiculo} acabou!`
+                                );
+                                utterance.lang = 'pt-BR';
+                                speechSynthesis.speak(utterance);
+                            } catch(e) { console.error("Erro ao usar SpeechSynthesis:", e); }
+                        }
+                    } else if (rest > 0) {
+                        timerEl.classList.remove('zerado');
+                        cardEl.classList.remove('acabou');
+                    }
+                }, 1000);
+            });
+        });
+    }
+
+    // =========================================================
+    // CONTROLES
+    // =========================================================
+    window.add = async (id, m) => {
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const d = (await getDoc(r)).data();
+        await updateDoc(r, {
+            pausado: d.pausado, // Mantém o estado de pausa
+            fimTimestamp: d.pausado ? d.fimTimestamp : d.fimTimestamp + (m*60000),
+            msRestantes: d.pausado ? d.msRestantes + (m*60000) : d.msRestantes,
+            tempoAjustado: (d.tempoAjustado || 0) + m // Atualiza o feedback
+        });
+    };
+
+    // Define minutos controlados (substitui addCtrl)
+    window.setCtrl = async (id, valor) => {
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const d = (await getDoc(r)).data();
+
+        // Calcula o máximo permitido (minutos realmente rodados)
+        const decorrido   = Date.Now() - d.timestamp - (d.totalMsPausado || 0);
+        const minsRodados = d.modalidadeLivre
+            ? Math.floor(decorrido / 60000)
+            : Math.min(d.minutosContratados, Math.floor(decorrido / 60000));
+
+        let novo = parseInt(valor) || 0;
+        novo = Math.max(0, Math.min(novo, minsRodados)); // nunca passa do total rodado
+
+        // Atualiza visualmente o input se o valor foi cortado
+        const inp = document.getElementById(`mc-input-${id}`);
+        if (inp && parseInt(inp.value) !== novo) {
+            inp.value = novo;
+        }
+
+        await updateDoc(r, { minutosControlados: novo });
+    };
+
+    window.addBonus = async (id) => {
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const d = (await getDoc(r)).data();
+        if (d.modalidadeLivre) return alert("Modo Livre não tem limite de tempo.");
+        const bonus = Math.floor(d.minutosContratados * 0.20);
+        if (bonus < 1) return alert("Tempo muito curto para bônus.");
+        if (confirm(`Adicionar ${bonus} min de bônus (Instagram)?`)) {
+            await updateDoc(r, {
+                pausado: d.pausado,
+                fimTimestamp: d.pausado ? d.fimTimestamp : d.fimTimestamp + (bonus*60000),
+                msRestantes: d.pausado ? d.msRestantes + (bonus*60000) : d.msRestantes,
+                tempoAjustado: (d.tempoAjustado || 0) + bonus // Atualiza o feedback
+            });
+        }
+    };
+
+    window.ps = async (id) => {
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const d = (await getDoc(r)).data(), now = Date.now();
+        if (d.pausado)
+            await updateDoc(r, { pausado: false, fimTimestamp: now + d.msRestantes, totalMsPausado: (d.totalMsPausado||0) + (now - d.ultimoPause) });
+        else
+            await updateDoc(r, { pausado: true, msRestantes: d.fimTimestamp - now, ultimoPause: now });
+    };
+
+    window.pg = async (id) => {
+        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const d = (await getDoc(r)).data();
+        const novo = d.pago === 'Sim' ? 'Não' : 'Sim';
+        await gravarAuditoria('edicao_status', `Alterou pagamento do card "${d.veiculo}" de "${d.pago}" para "${novo}"`, d);
+        await updateDoc(r, { pago: novo });
+    };
+
+    window.fim = async (id) => {
+        if (!confirm("Finalizar?")) return;
+        const r   = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const d   = (await getDoc(r)).data();
+        const now = Date.now();
+
+        const decorrido = now - d.timestamp - (d.totalMsPausado || 0);
+        let minsReais   = Math.max(1, Math.floor(decorrido / 60000));
+        let minsCobrar  = d.modalidadeLivre ? minsReais : Math.min(minsReais, d.minutosContratados);
+        const val       = minsCobrar * d.precoBase;
+
+        // Sincroniza min. controlados: não pode exceder o tempo real cobrado
+        const ctrlBruto = d.minutosControlados || 0;
+        const ctrlFinal = Math.min(ctrlBruto, minsCobrar);
+
+        // Pede observação se o usuário for "Cliente"
+        let observacao = "";
+        if (USER_DATA.isCliente) {
+            observacao = prompt("Deseja adicionar uma observação para este uso? (Opcional)");
+            if (observacao === null) return; // Se cancelar, não finaliza
+        }
+
+
+        await addDoc(collection(db, `hist_${USER_DATA.nome}_${USER_DATA.cidade}`), {
+            veiculo:            d.veiculo,
+            idVeiculo:          d.idVeiculo || gerarIDVeiculo(d.veiculo), // Garante ID mesmo se faltar
+            valor:              val,
+            pago:               d.pago,
+            data:               now,
+            tempo:              minsCobrar,
+            minutosControlados: ctrlFinal,
+            crianca:            d.crianca || "",
+            operador:           USER_DATA.usuario || USER_DATA.nome,
+            observacao:         observacao || "" // Salva a observação
+        });
+
+        notificadosAcabou.delete(id); // Limpa notificação para este card
+        await deleteDoc(r);
+    };
+
+    // =========================================================
+    // RELATÓRIO
+    // =========================================================
+    let unsubHistorico = null;
+
+    window.limparFiltroData = () => {
+        document.getElementById('filtro-data').value = '';
+        window.carregarHistorico();
+    };
+
+    window.carregarHistorico = () => {
+        if (unsubHistorico) unsubHistorico();
+
+        const userRef  = document.getElementById('filtro-master-user').value;
+        const colName  = (USER_DATA.isMaster && userRef && userRef !== 'meu')
+            ? `hist_${userRef}`
+            : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
+        const dataF    = document.getElementById('filtro-data').value;
+
+        unsubHistorico = onSnapshot(
+            query(collection(db, colName), orderBy('data','desc')),
+            (snap) => {
+                const tb     = document.getElementById('corpo-historico');
+                const tbCtrl = document.getElementById('corpo-ctrl');
+                let total    = 0, totalCtrl = 0;
+                tb.innerHTML = ""; tbCtrl.innerHTML = "";
+
+                snap.forEach(docu => {
+                    const h   = docu.data();
+                    const dia = new Date(h.data).toISOString().split('T')[0];
+                    if (dataF && dataF !== dia) return;
+
+                    if (h.pago === 'Sim') total += h.valor;
+                    const hora    = new Date(h.data).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+                    const idBadge = h.idVeiculo ? `<span class="id-badge">${h.idVeiculo}</span>` : '—';
+
+                    // Botão de exclusão visível apenas para Jeday
+                    const btnDelHtml = USER_DATA.isMaster ?
+                        `<button class="btn-del-hist-item" onclick="window.delHistItem('${docu.id}', '${colName}')">X</button>` : '';
+
+                    // Tabela principal
+                    tb.innerHTML += `
+                        <tr>
+                            <td>${hora}</td>
+                            <td>${h.veiculo}</td>
+                            <td>${idBadge}</td>
+                            <td style="text-align:center">${h.tempo}m</td>
+                            <td class="valor-cell" style="text-align:right">R$ ${h.valor.toFixed(2)}</td>
+                            <td style="text-align:center">
+                                <span class="status-cell ${h.pago==='Sim'?'st-pago':'st-pend'}"
+                                    onclick="window.toggleHistPg('${docu.id}','${colName}','${h.pago}')">
+                                    ${h.pago}
+                                </span>
+                            </td>
+                            <td>${btnDelHtml}</td>
+                        </tr>`;
+
+                    // Tabela minutos controlados
+                    const mc = h.minutosControlados || 0;
+                    if (mc > 0) {
+                        totalCtrl += mc;
+                        tbCtrl.innerHTML += `
+                            <tr>
+                                <td>${hora}</td>
+                                <td>${h.veiculo}</td>
+                                <td>${idBadge}</td>
+                                <td style="text-align:center">
+                                    <span class="ctrl-min-badge">🕹️ ${mc} min</span>
+                                </td>
+                                <td>${h.crianca || '—'}</td>
+                                <td>
+                                    <input type="text" class="obs-input" value="${h.observacao || ''}"
+                                        onchange="window.updateObs('${docu.id}', '${colName}', this.value)"
+                                        ${USER_DATA.isMaster ? '' : 'readonly'}
+                                        placeholder="Observação">
+                                </td>
+                                <td>${btnDelHtml}</td>
+                            </tr>`;
+                    }
+                });
+
+                document.getElementById('total-valor').innerText = `R$ ${total.toFixed(2)}`;
+                const sec = document.getElementById('ctrl-section');
+                sec.style.display = totalCtrl > 0 ? 'block' : 'none';
+                document.getElementById('total-ctrl-min').innerText = `${totalCtrl} min`;
+            }
+        );
+    };
+
+    window.toggleHistPg = async (docId, colName, statusAtual) => {
+        const novoStatus = statusAtual === 'Sim' ? 'Não' : 'Sim';
+        const snap = await getDoc(doc(db, colName, docId));
+        await gravarAuditoria('edicao_status',
+            `Alterou status do histórico: "${snap.data()?.veiculo}" de "${statusAtual}" para "${novoStatus}"`,
+            snap.data());
+        await updateDoc(doc(db, colName, docId), { pago: novoStatus });
+    };
+
+    // Excluir item individual do histórico (apenas Jeday)
+    window.delHistItem = async (docId, colName) => {
+        if (!USER_DATA.isMaster) return; // Apenas Jeday pode excluir
+        if (!confirm("Tem certeza que deseja excluir este item do histórico?")) return;
+        await deleteDoc(doc(db, colName, docId));
+        showToast("Item do histórico excluído!", 'sucesso', 2500);
+    };
+
+    // Atualizar observação no histórico (apenas Cliente)
+    window.updateObs = async (docId, colName, newObs) => {
+        if (!USER_DATA.isCliente) return; // Apenas Cliente pode adicionar observação
+        const snap = await getDoc(doc(db, colName, docId));
+        await gravarAuditoria('edicao_observacao',
+            `Alterou observação do histórico: "${snap.data()?.veiculo}" de "${snap.data()?.observacao || ''}" para "${newObs}"`,
+            snap.data());
+        await updateDoc(doc(db, colName, docId), { observacao: newObs });
+        showToast("Observação atualizada!", 'sucesso', 2000);
+    };
+
+
+    window.limparHistorico = async () => {
+        if (!USER_DATA.isMaster) return;
+        if (!confirm("⚠️ ATENÇÃO JEDAY!\nApagar TODO o histórico exibido?\nIsso não pode ser desfeito.")) return;
+        const userRef  = document.getElementById('filtro-master-user').value;
+        const colName  = (userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
+        const snap     = await getDocs(query(collection(db, colName)));
+        const batch    = writeBatch(db);
+        snap.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+        showToast("Histórico limpo!", 'sucesso', 3000);
+    };
+
+    // =========================================================
+    // TICKET
+    // =========================================================
+    window.abrirModalTicket = () => document.getElementById('ticket-modal').style.display = 'flex';
+
+    window.imprimirTicketManual = () => {
+        const min = document.getElementById('ticket-tempo').value;
+        const val = parseFloat(document.getElementById('ticket-valor').value || 0).toFixed(2);
+        document.getElementById('print-cidade').innerText = USER_DATA.cidade.toUpperCase();
+        document.getElementById('print-tempo').innerText  = `${min} MINUTOS`;
+        document.getElementById('print-valor').innerText  = `R$ ${val}`;
+        document.getElementById('print-data').innerText   = `Data: ${new Date().toLocaleString()}`;
+        window.print();
+        document.getElementById('ticket-modal').style.display = 'none';
+    };
+
+    // =========================================================
+    // MASTER (JEDAY) – GESTÃO DE PARCEIROS E AUDITORIA
+    // =========================================================
+    function iniciarMasterListeners() {
+        onSnapshot(collection(db, "usuarios"), (snap) => {
+            const lst = document.getElementById('lista-usuarios-master');
+            const sel = document.getElementById('filtro-master-user');
+            lst.innerHTML = "";
+            sel.innerHTML = "<option value='meu'>Meu Caixa</option>";
+
+            snap.forEach(d => {
+                const u = d.data();
+                sel.innerHTML += `<option value="${u.nome}_${u.cidade}">${u.cidade} - ${u.nome}</option>`;
+
+                // Monitor global de ativos
+                onSnapshot(collection(db, `ativos_${u.nome}_${u.cidade}`), (sA) => {
+                    const mon   = document.getElementById('global-monitor');
+                    const divId = `gm-${d.id}`;
+                    let b       = document.getElementById(divId);
+                    if (!b) {
+                        mon.insertAdjacentHTML('beforeend', `<div id="${divId}"></div>`);
+                        b = document.getElementById(divId);
+                    }
+                    b.innerHTML = "";
+                    sA.forEach(a => {
+                        b.innerHTML += `<div class="global-item">📍 ${u.cidade} | ${a.data().veiculo}</div>`;
+                    });
+                    if (sA.empty) b.innerHTML = "";
+                });
+
+                const diasRest = u.validade ? Math.ceil((u.validade - Date.now()) / 86400000) : 0;
+                const statusColor = u.status === 'ativo' ? 'green' : 'red';
+
+                lst.innerHTML += `
+                    <div style="background:#eee; padding:10px; margin-bottom:8px; border-radius:8px; border-left:4px solid ${statusColor}">
+                        <div style="display:flex; justify-content:space-between; align-items:center">
+                            <div>
+                                <b>${u.nome}</b> (${u.cidade})<br>
+                                <small>User: ${u.usuario || 'Antigo'}</small><br>
+                                <small>Status: <b>${u.status.toUpperCase()}</b></small>
+                            </div>
+                            <div style="display:flex; gap:5px">
+                                <button onclick="window.editarUser('${d.id}')" style="background:#333; color:white; border:none; border-radius:4px; padding:5px; cursor:pointer">✏️</button>
+                                <button onclick="window.delUser('${d.id}')" style="background:red; color:white; border:none; border-radius:44px; padding:5px; cursor:pointer">X</button>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px; display:flex; gap:5px; align-items:center; background:white; padding:5px; border-radius:5px">
+                            <small>Assinatura: <b>${diasRest} dias</b></small>
+                            <input type="number" id="add-dias-${d.id}" placeholder="+Dias" style="width:60px; margin:0; padding:5px">
+                            <button onclick="window.renovarUser('${d.id}')" style="background:var(--gold); border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer">RENOVAR</button>
+                        </div>
+                        ${u.status !== 'ativo'
+                            ? `<button onclick="window.ativarUser('${d.id}')" style="width:100%; margin-top:5px; background:var(--primary); color:white; border:none; padding:5px; border-radius:4px">APROVAR CADASTRO</button>`
+                            : ''}
+                    </div>`;
+            });
+        });
+    }
+
+    window.editarUser = async (id) => {
+        const docSnap = await getDoc(doc(db, "usuarios", id));
+        const u = docSnap.data();
+        document.getElementById('edit-id').value   = id;
+        document.getElementById('edit-nome').value = u.nome;
+        document.getElementById('edit-user').value = u.usuario || "";
+        document.getElementById('edit-pass').value = u.pass;
+        document.getElementById('edit-preco').value = u.preco;
+        document.getElementById('edit-zap').value   = u.whatsapp || "";
+        document.getElementById('edit-frota').value = u.frota;
+        document.getElementById('edit-user-modal').style.display = 'flex';
+    };
+
+    window.salvarEdicaoUser = async () => {
+        const id = document.getElementById('edit-id').value;
+        await updateDoc(doc(db, "usuarios", id), {
+            nome:     document.getElementById('edit-nome').value,
+            usuario:  document.getElementById('edit-user').value,
+            pass:     document.getElementById('edit-pass').value,
+            preco:    parseFloat(document.getElementById('edit-preco').value || 0),
+            whatsapp: document.getElementById('edit-zap').value,
+            frota:    document.getElementById('edit-frota').value
+        });
+        document.getElementById('edit-user-modal').style.display = 'none';
+        showToast("Usuário atualizado!", "sucesso", 2500);
+    };
+
+    window.delUser = async (id) => {
+        if (!confirm("Remover usuário?")) return;
+        await deleteDoc(doc(db, "usuarios", id));
+        showToast("Usuário removido!", "sucesso", 2500);
+    };
+
+    window.renovarUser = async (id) => {
+        const dias = parseInt(document.getElementById(`add-dias-${id}`).value);
+        if (!dias) return alert("Digite a quantidade de dias");
+        const novaVal = Date.now() + dias * 86400000;
+        await updateDoc(doc(db, "usuarios", id), { validade: novaVal, status: 'ativo' });
+        showToast("Assinatura renovada!", "sucesso", 2500);
+    };
+
+    window.ativarUser = async (id) => {
+        if (!confirm("Aprovar este usuário?")) return;
+        await updateDoc(doc(db, "usuarios", id), {
+            status: 'ativo',
+            validade: Date.now() + 86400000 // 1 dia
+        });
+        showToast("Usuário aprovado!", "sucesso", 2500);
+    };
+
+    // Criador padrão (opcional)
+    window.criarUsuariosPadrao = async () => {
+        if (!confirm("Criar Cydinha e Thallys em Cedro?")) return;
+        const batch = writeBatch(db);
+
+        const ref1 = doc(collection(db, "usuarios"));
+        batch.set(ref1, {
+            nome: "Cydinha", usuario: "Cydinha", pass: "1234", cidade: "Cedro",
+            preco: 1.0, whatsapp: "", frota: "Carrinho Rosa, Moto Branca",
+            status: "ativo", validade: Date.now() + 365*86400000
+        });
+
+        const ref2 = doc(collection(db, "usuarios"));
+        batch.set(ref2, {
+            nome: "Thallys", usuario: "Thallys", pass: "1234", cidade: "Cedro",
+            preco: 1.0, whatsapp: "", frota: "Carrinho Azul, Moto Preta",
+            status: "ativo", validade: Date.now() + 365*86400000
+        });
+
+        await batch.commit();
+        showToast("Usuários criados!", "sucesso", 2500);
+    };
+
+    // AUDITORIA (ver pelo Jeday)
+    window.abrirAuditoria = async () => {
+        const container = document.getElementById('audit-lista');
+        container.innerHTML = 'Carregando...';
+        document.getElementById('audit-modal').style.display = 'flex';
+
+        const q = query(collection(db, "auditoria_cliente"), orderBy('timestamp','desc'));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            container.innerHTML = '<small>Nenhum registro de auditoria encontrado.</small>';
+            return;
+        }
+
+        container.innerHTML = '';
+        snap.forEach(docu => {
+            const a  = docu.data();
+            const dt = new Date(a.timestamp).toLocaleString();
+            const dadosTxt = a.dadosAntes ? `<br><small><b>Antes:</b> ${a.dadosAntes}</small>` : '';
+            const cls = a.tipo === 'exclusao' ? 'log-del' : 'log-edit';
+            container.innerHTML += `
+                <div class="log-item ${cls}">
+                    <b>${a.tipo === 'exclusao' ? 'Exclusão' : 'Edição/Status'}</b> — ${dt}<br>
+                    <small>${a.descricao}</small>
+                    ${dadosTxt}
+                </div>`;
+        });
+    };
+
+    // =========================================================
+    // CADASTRO PARCEIROS
+    // =========================================================
+    window.cadastrarUsuario = async () => {
+        const nome   = document.getElementById('reg-nome').value;
+        const user   = document.getElementById('reg-user').value;
+        const pass   = document.getElementById('reg-pass').value;
+        const cidade = document.getElementById('reg-cidade').value;
+        const preco  = parseFloat(document.getElementById('reg-preco').value || 0);
+        const zap    = document.getElementById('reg-zap').value;
+        const frota  = document.getElementById('reg-frota').value;
+
+        if (!nome || !user || !pass || !preco || !frota) return alert("Preencha tudo!");
+
+        await addDoc(collection(db, "usuarios"), {
+            nome, usuario: user, pass, cidade,
+            preco, whatsapp: zap, frota,
+            status: "pendente", validade: 0
+        });
+        alert("Solicitação enviada! Aguarde aprovação do Jeday.");
+        window.switchScreen('login');
+    };
+
+    // =========================================================
+    // UTIL GERAIS
+    // =========================================================
+    window.setQuickTime = (v) => document.getElementById('tempo-padrao').value = v;
+
+    window.toggleMasterPanel = () => {
+        const p = document.getElementById('master-panel');
+        p.style.display = p.style.display === 'block' ? 'none' : 'block';
+    };
+
+    window.switchScreen = (s) => {
+        document.getElementById('login-screen').style.display    = s === 'login'    ? 'flex' : 'none';
+        document.getElementById('register-screen').style.display = s === 'register' ? 'flex' : 'none';
+    };
+
+    setInterval(() => {
+        const el = document.getElementById('relogio');
+        if (el) el.innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }, 1000);
+</script>
+</body>
+</html>
