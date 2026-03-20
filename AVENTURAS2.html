@@ -99,6 +99,33 @@
         .master-badge { background: var(--gold); color: #5a4a00; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
         .global-item { background: #333; color: #0f0; padding: 8px; border-radius: 5px; margin-bottom: 5px; font-family: monospace; font-size: 12px; border-left: 4px solid #0f0; }
 
+        /* Botão Financeiro Pulsante */
+        @keyframes pulseBlack {
+            0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.5); transform: scale(1); }
+            50% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); transform: scale(1.02); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); transform: scale(1); }
+        }
+        .btn-financeiro {
+            background: #000;
+            color: #fff;
+            border: 2px solid #333;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 16px;
+            cursor: pointer;
+            animation: pulseBlack 2s infinite;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        body.dark-mode .btn-financeiro { background: #111; border-color: #444; }
+
         /* Botões de Frota */
         .frota-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
         .btn-frota { padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -268,6 +295,10 @@
         <button onclick="location.reload()" style="margin-left:10px; border:none; background:#eee; padding:8px 12px; border-radius:6px; color:#333">Sair</button>
     </header>
 
+    <div id="btn-financeiro-container" style="display:none;">
+        <a href="https://jedayroget-eng.github.io/teste/index2.html" target="_blank" class="btn-financeiro">💰 FINANCEIRO</a>
+    </div>
+
     <div id="master-panel" class="panel">
         <h3 style="color:var(--gold); margin-top:0">👑 COMANDO GLOBAL</h3>
         <div style="margin-bottom:15px">
@@ -285,7 +316,7 @@
         </div>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="panel-iniciar">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
             <input type="text" id="nome-crianca" placeholder="Nome da Criança">
             <input type="text" id="nome-responsavel" placeholder="Responsável">
@@ -414,7 +445,7 @@
 
     const contadoresID = {};
     const notificadosAcabou = new Set();
-    let isFidelidadeMode = false; // Controle global do modo fidelidade
+    let isFidelidadeMode = false;
 
     // =========================================================
     // FUNÇÕES DE TEMPO E LAYOUT
@@ -502,7 +533,17 @@
         if (user === "Jeday" && pass === "104101") {
             loginSucesso({
                 nome: "Jeday", usuario: "Jeday", cidade: "Cedro",
-                status: "ativo", isMaster: true,
+                status: "ativo", isMaster: true, canManageTime: true, canDelete: true,
+                frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete",
+                preco: 1, validade: 9999999999999
+            });
+            return;
+        }
+
+        if (user === "Thallys" && pass === "1234") {
+            loginSucesso({
+                nome: "Thallys", usuario: "Thallys", cidade: "Cedro",
+                status: "ativo", isMaster: true, canManageTime: false, canDelete: false,
                 frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete",
                 preco: 1, validade: 9999999999999
             });
@@ -514,7 +555,7 @@
                 nome: "Jeday",          
                 usuario: "Cliente",     
                 nomeExibido: "Cliente", 
-                cidade: "Cedro", status: "ativo", isMaster: false, isCliente: true,
+                cidade: "Cedro", status: "ativo", isMaster: false, canManageTime: true, canDelete: false, isCliente: true,
                 frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete",
                 preco: 1, validade: 9999999999999
             });
@@ -534,7 +575,7 @@
         if (dados.validade && Date.now() > dados.validade)
             return alert("SUA ASSINATURA EXPIROU! Entre em contato com Jeday.");
 
-        loginSucesso({ ...dados, id: snap.docs[0].id });
+        loginSucesso({ ...dados, id: snap.docs[0].id, canManageTime: true, canDelete: false });
     };
 
     function loginSucesso(dados) {
@@ -547,7 +588,10 @@
             document.getElementById('op-assinatura').innerText = "👑 Acesso Vitalício";
             document.getElementById('btn-master-toggle').style.display = 'block';
             document.getElementById('filtro-master-user').style.display = 'block';
-            document.getElementById('btn-limpar-hist').style.display = 'block';
+            document.getElementById('btn-financeiro-container').style.display = 'block';
+            if (USER_DATA.canDelete) {
+                document.getElementById('btn-limpar-hist').style.display = 'block';
+            }
             iniciarMasterListeners();
         } else if (USER_DATA.isCliente) {
             document.getElementById('op-assinatura').innerText = "🛂 Operador Cliente";
@@ -558,7 +602,12 @@
             if (dias <= 3) el.classList.add('assinatura-alert');
         }
 
-        montarFrota();
+        if (USER_DATA.canManageTime === false) {
+            document.getElementById('panel-iniciar').style.display = 'none';
+        } else {
+            montarFrota();
+        }
+
         iniciarCards();
         document.getElementById('filtro-data').value = dataLocalISO();
         window.carregarHistorico();
@@ -599,7 +648,7 @@
         if (t.includes('verd'))     return 'cor-verde';
         if (t.includes('pret'))     return 'cor-preto';
         if (t.includes('laranj'))   return 'cor-laranja';
-        if (t.includes('patinete')) return 'cor-cinza'; // Patinete cinza adicionado
+        if (t.includes('patinete')) return 'cor-cinza'; 
         return 'cor-padrao';
     }
 
@@ -611,7 +660,6 @@
         const agora = Date.now();
         const idVeiculo = gerarIDVeiculo(veiculo);
         
-        // Verifica se é fidelidade
         const fidMode = isFidelidadeMode;
 
         await addDoc(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), {
@@ -632,7 +680,7 @@
         });
         
         document.getElementById('nome-crianca').value = "";
-        window.clearFidelidade(); // Desmarca fidelidade para o próximo
+        window.clearFidelidade(); 
     };
 
     function iniciarCards() {
@@ -654,6 +702,25 @@
                 let el   = document.getElementById(`c-${id}`);
 
                 if (!el) {
+                    const controlsHtml = USER_DATA.canManageTime !== false ? `
+                        <div class="card-controls">
+                            <button class="btn-ctrl" style="background:#e67e22" onclick="window.add('${id}',-1)">-1m</button>
+                            <button class="btn-ctrl" style="background:#27ae60" onclick="window.add('${id}',1)">+1m</button>
+                            <button class="btn-ctrl" style="background:var(--insta)" onclick="window.addBonus('${id}')">🎁 20%</button>
+                            <button class="btn-ctrl" style="background:#2980b9" id="ps-${id}" onclick="window.ps('${id}')">⏸</button>
+                            <button class="btn-ctrl" style="background:#c0392b" onclick="window.fim('${id}')">FIM</button>
+                        </div>
+                        <div class="ctrl-box">
+                            <label>🕹️ Min. Controlados:</label>
+                            <input type="number" id="mc-input-${id}" min="0" value="${d.minutosControlados || 0}" oninput="window.setCtrl('${id}', this.value)">
+                            <span class="ctrl-limit" id="mc-limit-${id}">de 0 min rodados</span>
+                        </div>
+                    ` : '';
+
+                    const pgButtonHtml = USER_DATA.canManageTime !== false ?
+                        `<button id="pg-${id}" onclick="event.stopPropagation(); window.pg('${id}')" style="border:none; border-radius:8px; font-weight:bold; cursor:pointer; padding:8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></button>` :
+                        `<button id="pg-${id}" style="border:none; border-radius:8px; font-weight:bold; cursor:default; padding:8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); pointer-events:none;"></button>`;
+
                     div.insertAdjacentHTML('beforeend', `
                         <div class="card" id="c-${id}">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start">
@@ -663,41 +730,17 @@
                                     ${d.isFidelidade ? '<span class="fidelidade-badge">💳 FIDELIDADE</span>' : ''}<br>
                                     <small>${d.crianca}</small>
                                 </div>
-                                <button id="pg-${id}" onclick="event.stopPropagation(); window.pg('${id}')"
-                                    style="border:none; border-radius:8px; font-weight:bold; cursor:pointer; padding:8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                </button>
+                                ${pgButtonHtml}
                             </div>
 
                             <div class="timer-big" id="t-${id}">00:00</div>
                             <div class="time-feedback-display" id="tf-${id}"></div>
-
-                            <div class="card-controls">
-                                <button class="btn-ctrl" style="background:#e67e22" onclick="window.add('${id}',-1)">-1m</button>
-                                <button class="btn-ctrl" style="background:#27ae60" onclick="window.add('${id}',1)">+1m</button>
-                                <button class="btn-ctrl" style="background:var(--insta)" onclick="window.addBonus('${id}')">🎁 20%</button>
-                                <button class="btn-ctrl" style="background:#2980b9" id="ps-${id}" onclick="window.ps('${id}')">⏸</button>
-                                <button class="btn-ctrl" style="background:#c0392b" onclick="window.fim('${id}')">FIM</button>
-                            </div>
-
-                            <div class="ctrl-box">
-                                <label>🕹️ Min. Controlados:</label>
-                                <input
-                                    type="number"
-                                    id="mc-input-${id}"
-                                    min="0"
-                                    value="${d.minutosControlados || 0}"
-                                    oninput="window.setCtrl('${id}', this.value)"
-                                >
-                                <span class="ctrl-limit" id="mc-limit-${id}">
-                                    de 0 min rodados
-                                </span>
-                            </div>
+                            ${controlsHtml}
                         </div>
                     `);
                     el = document.getElementById(`c-${id}`);
                 }
 
-                // UI do Botão Pagamento (garantindo atualização instantânea sem recriar DOM)
                 const btnPg = document.getElementById(`pg-${id}`);
                 if(d.isFidelidade) {
                     btnPg.innerText = '💳 FIDELIDADE';
@@ -759,7 +802,6 @@
                     const s = Math.floor(rest / 1000);
                     timerEl.innerText = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
 
-                    // Lógica de Cores e Animações
                     if (d.pausado) {
                         cardEl.classList.remove('running', 'warning-yellow', 'warning-red');
                         cardEl.classList.add('paused');
@@ -785,13 +827,13 @@
                         if (!d.modalidadeLivre) {
                             const totalMs = d.minutosContratados * 60000;
                             const pct = rest / totalMs;
-                            if (pct <= 0.2) { // Últimos 20%
+                            if (pct <= 0.2) { 
                                 cardEl.classList.add('warning-red');
                                 cardEl.classList.remove('warning-yellow', 'running');
-                            } else if (pct <= 0.5) { // Passou da metade
+                            } else if (pct <= 0.5) { 
                                 cardEl.classList.add('warning-yellow');
                                 cardEl.classList.remove('warning-red', 'running');
-                            } else { // Início tranquilo
+                            } else { 
                                 cardEl.classList.add('running');
                                 cardEl.classList.remove('warning-yellow', 'warning-red');
                             }
@@ -862,7 +904,6 @@
             await updateDoc(r, { pausado: true, msRestantes: d.fimTimestamp - now, ultimoPause: now });
     };
 
-    // Botão de alterar o pagamento do CARD ATIVO
     window.pg = async (id) => {
         const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
         const d = (await getDoc(r)).data();
@@ -886,7 +927,7 @@
         let minsCobrar  = d.modalidadeLivre ? minsReais : Math.min(minsReais, d.minutosContratados);
         
         let val = minsCobrar * d.precoBase;
-        if (d.isFidelidade) val = 0; // Fidelidade tem custo zero
+        if (d.isFidelidade) val = 0; 
 
         const ctrlBruto = d.minutosControlados || 0;
         const ctrlFinal = Math.min(ctrlBruto, minsCobrar);
@@ -903,8 +944,8 @@
             valor:              val,
             pago:               d.isFidelidade ? "FIDELIDADE" : d.pago,
             data:               now,
-            horaInicio:         d.timestamp, // <--- Salvando hora exata do início
-            horaFim:            now,         // <--- Salvando hora exata do fim
+            horaInicio:         d.timestamp, 
+            horaFim:            now,         
             tempo:              minsCobrar,
             tempoAjustado:      d.tempoAjustado || 0,
             minutosControlados: ctrlFinal,
@@ -957,14 +998,13 @@
                     const hFim    = h.horaFim ? formatarHora(h.horaFim) : formatarHora(h.data);
 
                     const idBadge = h.idVeiculo ? `<span class="id-badge">${h.idVeiculo}</span>` : '—';
-                    const btnDelHtml = USER_DATA.isMaster ?
+                    const btnDelHtml = USER_DATA.canDelete ?
                         `<button class="btn-del-hist-item" onclick="window.delHistItem('${docu.id}', '${colName}')">X</button>` : '';
 
                     const exibeAjuste = h.tempoAjustado ? 
                         `<br><small style="color:${h.tempoAjustado > 0 ? 'var(--time-feedback-add)' : 'var(--time-feedback-rem)'}; font-weight:bold;">(${h.tempoAjustado > 0 ? '+' : ''}${h.tempoAjustado}m)</small>` 
                         : '';
 
-                    // Define classe visual pelo status (Sim, Não, Fidelidade)
                     let statusClass = 'st-pend';
                     if (h.pago === 'Sim') statusClass = 'st-pago';
                     if (h.pago === 'FIDELIDADE') statusClass = 'st-fid';
@@ -1029,7 +1069,7 @@
     };
 
     window.delHistItem = async (docId, colName) => {
-        if (!USER_DATA.isMaster) return; 
+        if (!USER_DATA.canDelete) return; 
         if (!confirm("Tem certeza que deseja excluir este item do histórico?")) return;
         await deleteDoc(doc(db, colName, docId));
         showToast("Item do histórico excluído!", 'sucesso', 2500);
@@ -1046,7 +1086,7 @@
     };
 
     window.limparHistorico = async () => {
-        if (!USER_DATA.isMaster) return;
+        if (!USER_DATA.canDelete) return;
         if (!confirm("⚠️ ATENÇÃO JEDAY!\nApagar TODO o histórico exibido?\nIsso não pode ser desfeito.")) return;
         const userRef  = document.getElementById('filtro-master-user').value;
         const colName  = (userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
@@ -1088,6 +1128,7 @@
 
                 const diasRest = u.validade ? Math.ceil((u.validade - Date.now()) / 86400000) : 0;
                 const statusColor = u.status === 'ativo' ? 'green' : 'red';
+                const btnDelUser = USER_DATA.canDelete ? `<button onclick="window.delUser('${d.id}')" style="background:red; color:white; border:none; border-radius:44px; padding:5px; cursor:pointer">X</button>` : '';
 
                 lst.innerHTML += `
                     <div style="background:#eee; padding:10px; margin-bottom:8px; border-radius:8px; border-left:4px solid ${statusColor}">
@@ -1099,7 +1140,7 @@
                             </div>
                             <div style="display:flex; gap:5px">
                                 <button onclick="window.editarUser('${d.id}')" style="background:#333; color:white; border:none; border-radius:4px; padding:5px; cursor:pointer">✏️</button>
-                                <button onclick="window.delUser('${d.id}')" style="background:red; color:white; border:none; border-radius:44px; padding:5px; cursor:pointer">X</button>
+                                ${btnDelUser}
                             </div>
                         </div>
                         <div style="margin-top:8px; display:flex; gap:5px; align-items:center; background:white; padding:5px; border-radius:5px">
@@ -1143,6 +1184,7 @@
     };
 
     window.delUser = async (id) => {
+        if (!USER_DATA.canDelete) return;
         if (!confirm("Remover usuário?")) return;
         await deleteDoc(doc(db, "usuarios", id));
         showToast("Usuário removido!", "sucesso", 2500);
