@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cedro Aventuras - MASTER V27</title>
+    <title>Cedro Aventuras - MASTER V28</title>
     <style>
         :root {
             --primary: #2d5a27;
@@ -71,7 +71,6 @@
         body.dark-mode .panel, body.dark-mode header, body.dark-mode .card, body.dark-mode .login-box { background: var(--card-bg); color: var(--text); }
         body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: #333; color: white; border-color: #555; }
         body.dark-mode .timer-big { color: #fff; }
-        body.dark-mode .card.paused { background: #2c2c20; border-left-color: #f1c40f; }
         body.dark-mode table th { background: #333; color: #ccc; }
         body.dark-mode table td { border-bottom: 1px solid #444; color: var(--text); }
         body.dark-mode tr:last-child td { border-bottom: none; }
@@ -112,81 +111,61 @@
         .cor-verde { background: #27ae60; color: white; }
         .cor-preto { background: #333; color: white; }
         .cor-laranja { background: #e67e22; color: white; }
+        .cor-cinza { background: #7f8c8d; color: white; border: 2px solid #555; }
         .cor-padrao { background: var(--primary); color: white; }
 
-        /* Cards */
-        .card { background: var(--card-bg); padding: 15px; border-radius: 15px; border-left: 8px solid var(--primary); margin-bottom: 15px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .card.paused { background: #fffdf0; border-left-color: #f1c40f; }
-        .card.acabou { border-left-color: var(--danger) !important; animation: piscar 0.6s infinite alternate; }
-        @keyframes piscar { from { box-shadow: 0 0 8px rgba(231,76,60,0.4); } to { box-shadow: 0 0 20px rgba(231,76,60,0.9); } }
+        /* Cards e Animações */
+        @keyframes pulseActive {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        @keyframes piscarAcabou { 
+            from { box-shadow: 0 0 8px rgba(231,76,60,0.4); } 
+            to { box-shadow: 0 0 20px rgba(231,76,60,0.9); } 
+        }
+
+        .card { background: var(--card-bg); padding: 15px; border-radius: 15px; border-left: 8px solid var(--primary); margin-bottom: 15px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        .card.running { animation: pulseActive 2s infinite; border-left-color: #27ae60; }
+        .card.warning-yellow { border-left-color: #f39c12; background: #fffcf5; }
+        .card.warning-red { border-left-color: #e67e22; background: #fdf5e6; }
+        .card.paused { background: #f0f3f4; border-left-color: #95a5a6; opacity: 0.8; }
+        .card.acabou { border-left-color: var(--danger) !important; animation: piscarAcabou 0.6s infinite alternate; background: #fdedec; }
+        
+        body.dark-mode .card.warning-yellow { background: #332b00; }
+        body.dark-mode .card.warning-red { background: #3a1515; }
+        body.dark-mode .card.paused { background: #1a1a1a; }
+        body.dark-mode .card.acabou { background: #2c0a0a; }
+
+        .fidelidade-badge { background: #8e44ad; color: white; font-size: 10px; padding: 3px 8px; border-radius: 12px; font-weight: bold; margin-left: 5px; vertical-align: middle; }
+        .btn-time { transition: 0.2s; }
+        .btn-time.fid-active { border: 2px solid #333; transform: scale(1.05); background: #8e44ad !important; color: white !important; font-weight: 900; }
 
         .timer-big { font-size: 48px; font-weight: 800; text-align: center; color: var(--text); margin: 5px 0; letter-spacing: -1px; position: relative; }
         .timer-big.zerado { color: var(--danger) !important; }
 
-        /* Feedback de tempo adicionado/removido (persistente) */
-        .time-feedback-display {
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            margin-top: -5px; /* Ajusta para ficar mais próximo do timer */
-            min-height: 18px; /* Garante espaço mesmo vazio */
-        }
+        /* Feedback de tempo adicionado/removido */
+        .time-feedback-display { font-size: 14px; font-weight: bold; text-align: center; margin-top: -5px; min-height: 18px; }
         .time-feedback-display.add { color: var(--time-feedback-add); }
         .time-feedback-display.rem { color: var(--time-feedback-rem); }
-
 
         .card-controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
         .btn-ctrl { padding: 10px 0; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; font-size: 12px; }
 
-        /* MINUTO CONTROLADO — input box */
-        .ctrl-box {
-            margin-top: 10px;
-            background: var(--ctrl-bg);
-            border: 2px solid var(--ctrl-border);
-            border-radius: 10px;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .ctrl-box label {
-            font-size: 13px;
-            font-weight: bold;
-            color: var(--ctrl-title);
-            margin: 0;
-            white-space: nowrap;
-        }
-        .ctrl-box input[type="number"] {
-            width: 70px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 16px;
-            border: 2px solid var(--ctrl-input-border);
-            border-radius: 8px;
-            padding: 6px;
-            margin: 0;
-            color: var(--ctrl-input-color);
-            background: var(--ctrl-input-bg);
-        }
-        .ctrl-box span.ctrl-limit {
-            font-size: 11px;
-            color: var(--ctrl-limit-color);
-        }
-        .ctrl-box button {
-            background: var(--ctrl-badge-bg);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .ctrl-box button:active {
-            transform: scale(0.97);
-        }
+        /* LAYOUT V2 */
+        #container-cards.layout-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        #container-cards.layout-v2 .card { margin-bottom: 0; padding: 12px; }
+        #container-cards.layout-v2 .timer-big { font-size: 32px; }
+        #container-cards.layout-v2 .card-controls { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        #container-cards.layout-v2 .btn-ctrl { font-size: 11px; padding: 8px 0; }
+        #container-cards.layout-v2 .ctrl-box { flex-direction: column; align-items: stretch; }
 
+        /* MINUTO CONTROLADO — input box */
+        .ctrl-box { margin-top: 10px; background: var(--ctrl-bg); border: 2px solid var(--ctrl-border); border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .ctrl-box label { font-size: 13px; font-weight: bold; color: var(--ctrl-title); margin: 0; white-space: nowrap; }
+        .ctrl-box input[type="number"] { width: 70px; text-align: center; font-weight: bold; font-size: 16px; border: 2px solid var(--ctrl-input-border); border-radius: 8px; padding: 6px; margin: 0; color: var(--ctrl-input-color); background: var(--ctrl-input-bg); }
+        .ctrl-box span.ctrl-limit { font-size: 11px; color: var(--ctrl-limit-color); }
+        
         /* ID Badge */
         .id-badge { font-size: 10px; background: var(--id-badge-bg); color: var(--id-badge-color); padding: 2px 6px; border-radius: 4px; font-weight: bold; font-family: monospace; }
 
@@ -200,108 +179,45 @@
         td { padding: 12px 8px; border-bottom: 1px solid #eee; color: var(--text); }
         body.dark-mode td { border-bottom: 1px solid #444; }
         .valor-cell { font-weight: bold; color: var(--primary); }
-        .status-cell { font-size: 11px; padding: 4px 8px; border-radius: 12px; display: inline-block; cursor: pointer; }
+        .status-cell { font-size: 11px; padding: 4px 8px; border-radius: 12px; display: inline-block; cursor: pointer; font-weight: bold; }
         .st-pago { background: #d4edda; color: #155724; }
         .st-pend { background: #f8d7da; color: #721c24; }
+        .st-fid  { background: #e1bee7; color: #4a148c; }
 
-        /* Botão de exclusão no relatório */
-        .btn-del-hist-item {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 10px;
-            cursor: pointer;
-            margin-left: 5px;
-            vertical-align: middle;
-        }
+        .btn-del-hist-item { background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 10px; cursor: pointer; margin-left: 5px; vertical-align: middle; }
         .btn-del-hist-item:hover { background: #c0392b; }
-
 
         .total-box { background: var(--dark); color: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; margin-bottom: 15px; }
         .assinatura-badge { font-size: 11px; background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 20px; border: 1px solid #c8e6c9; margin-top: 4px; display: inline-block; }
         .assinatura-alert { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
 
-        /* SEÇÃO MINUTOS CONTROLADOS NO RELATÓRIO */
         .ctrl-section { background: var(--ctrl-bg); border: 1px solid var(--ctrl-border); border-radius: 10px; padding: 12px; margin-top: 10px; }
         .ctrl-section-title { color: var(--ctrl-title); font-weight: bold; font-size: 13px; margin-bottom: 8px; }
         .ctrl-total-box { background: var(--ctrl-total-bg); color: white; padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 14px; margin-top: 8px; }
         .ctrl-min-badge { display: inline-block; background: var(--ctrl-badge-bg); color: white; font-size: 10px; padding: 2px 7px; border-radius: 10px; vertical-align: middle; }
 
-        /* Campo de observação no relatório */
-        .obs-input {
-            width: 100%;
-            padding: 6px;
-            border: 1px solid var(--obs-input-border);
-            border-radius: 4px;
-            font-size: 12px;
-            background: var(--obs-input-bg);
-            color: var(--obs-input-color);
-            box-sizing: border-box;
-        }
-        .obs-input:focus {
-            border-color: var(--primary);
-            outline: none;
-        }
+        .obs-input { width: 100%; padding: 6px; border: 1px solid var(--obs-input-border); border-radius: 4px; font-size: 12px; background: var(--obs-input-bg); color: var(--obs-input-color); box-sizing: border-box; }
+        .obs-input:focus { border-color: var(--primary); outline: none; }
 
-        /* LOG DE AUDITORIA */
         .log-item { font-size: 12px; background: var(--log-item-bg); border-left: 3px solid var(--log-item-border); padding: 8px; border-radius: 4px; margin-bottom: 5px; color: var(--text); }
         .log-item.log-del { background: var(--log-del-bg); border-left-color: var(--log-del-border); }
         .log-item.log-edit { background: var(--log-edit-bg); border-left-color: var(--log-edit-border); }
 
-        /* Modais */
-        #ticket-modal, #edit-user-modal, #audit-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; justify-content:center; align-items:center; }
+        #edit-user-modal, #audit-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:3000; justify-content:center; align-items:center; }
         .modal-inner { background: var(--card-bg); color: var(--text); padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
 
-        /* NOTIFICAÇÃO TOAST */
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
         .toast { background: #c0392b; color: white; padding: 14px 22px; border-radius: 12px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: slideDown 0.4s ease; max-width: 320px; text-align: center; pointer-events: all; }
         .toast.sucesso { background: #27ae60; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Footer Suporte */
         .footer-support { position: fixed; bottom: 0; left: 0; width: 100%; background: #25D366; color: white; text-align: center; padding: 10px; font-weight: bold; cursor: pointer; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; gap: 10px; }
-
-        /* IMPRESSÃO TÉRMICA */
-        #print-area { display: none; }
-        @media print {
-            body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { display: block; position: absolute; left: 0; top: 0; width: 58mm; font-family: 'Courier New', Courier, monospace; font-size: 12px; text-align: center; color: black; }
-            .print-bold { font-weight: bold; font-size: 14px; }
-            .print-big { font-size: 18px; font-weight: bold; margin: 5px 0; }
-        }
     </style>
 </head>
 <body>
 
-<!-- TOAST CONTAINER -->
 <div id="toast-container"></div>
 
-<!-- ÁREA DE IMPRESSÃO -->
-<div id="print-area">
-    <div style="text-align:center">
-        -----------------------<br>
-        <b class="print-bold">Brinquedos Elétricos</b><br>
-        <span id="print-cidade">CEDRO</span><br>
-        -----------------------<br>
-        VOCÊ ACABOU DE COMPRAR<br>
-        <div class="print-big" id="print-tempo">10 MINUTOS</div>
-        <div class="print-big" id="print-valor">R$ 10,00</div>
-        <br>
-        ---------- P A G O ----------<br>
-        <br>
-        Obrigado pela preferência!<br>
-        Siga-nos no instagram para<br>
-        ganhar BÔNUS!!!<br>
-        -----------------------<br>
-        <small id="print-data">Data: 00/00/00 00:00</small>
-        <br><br>.
-    </div>
-</div>
-
-<!-- TELA DE LOGIN -->
 <div id="login-screen">
     <div class="login-box">
         <h2 style="color: var(--primary); margin:0 0 15px 0">🌲 Cedro Aventuras</h2>
@@ -320,7 +236,6 @@
     </div>
 </div>
 
-<!-- TELA DE CADASTRO -->
 <div id="register-screen" style="display: none;">
     <div class="login-box">
         <h3 style="margin:0 0 15px 0">📝 Novo Parceiro</h3>
@@ -336,7 +251,6 @@
     </div>
 </div>
 
-<!-- TELA PRINCIPAL -->
 <div id="app-screen">
     <header>
         <div>
@@ -344,6 +258,7 @@
             <div id="op-assinatura" class="assinatura-badge">Verificando assinatura...</div>
         </div>
         <div style="text-align:right; display:flex; align-items:center; gap:10px">
+            <button onclick="window.toggleLayoutV2()" style="background:transparent; border:1px solid #ccc; border-radius:5px; padding:4px 8px; cursor:pointer; font-size:14px; font-weight:bold; color:var(--text)">🗂️ V2</button>
             <button onclick="window.toggleDarkMode()" style="background:transparent; border:1px solid #ccc; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:14px">🌙</button>
             <div>
                 <div id="relogio" style="font-weight:bold; font-size:18px">00:00</div>
@@ -353,12 +268,6 @@
         <button onclick="location.reload()" style="margin-left:10px; border:none; background:#eee; padding:8px 12px; border-radius:6px; color:#333">Sair</button>
     </header>
 
-    <!-- Botão Vender Ticket -->
-    <div class="panel" style="background: #e3f2fd; border: 1px solid #90caf9; text-align:center">
-        <button onclick="window.abrirModalTicket()" style="background: #1976d2; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 14px; width: 100%;">🎟️ VENDER TICKET AVULSO</button>
-    </div>
-
-    <!-- PAINEL MASTER -->
     <div id="master-panel" class="panel">
         <h3 style="color:var(--gold); margin-top:0">👑 COMANDO GLOBAL</h3>
         <div style="margin-bottom:15px">
@@ -366,7 +275,6 @@
             <div id="global-monitor">Carregando...</div>
         </div>
         <hr style="border:0; border-top:1px solid #ddd">
-        <!-- BOTÃO LOG DE AUDITORIA -->
         <div style="margin-top:10px; margin-bottom:10px">
             <button onclick="window.abrirAuditoria()" style="background:#e67e22; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; width:100%; cursor:pointer">🔍 LOG DE AUDITORIA (CLIENTE)</button>
         </div>
@@ -377,23 +285,24 @@
         </div>
     </div>
 
-    <!-- PAINEL INICIAR -->
     <div class="panel">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px">
             <input type="text" id="nome-crianca" placeholder="Nome da Criança">
             <input type="text" id="nome-responsavel" placeholder="Responsável">
         </div>
         <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:15px">
-            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(5)">5m</button>
-            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(10)">10m</button>
-            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(15)">15m</button>
-            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(20)">20m</button>
-            <button class="btn-ctrl" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(30)">30m</button>
-            <button class="btn-ctrl" style="background:#2c3e50; flex:1" onclick="window.setQuickTime(9999)">LIVRE</button>
+            <button class="btn-ctrl btn-time" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(5)">5m</button>
+            <button class="btn-ctrl btn-time" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(10)">10m</button>
+            <button class="btn-ctrl btn-time" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(15)">15m</button>
+            <button class="btn-ctrl btn-time" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(20)">20m</button>
+            <button class="btn-ctrl btn-time" style="background:#ddd; color:#333; flex:1" onclick="window.setQuickTime(30)">30m</button>
+            <button class="btn-ctrl btn-time" style="background:#2c3e50; flex:1" onclick="window.setQuickTime(9999)">LIVRE</button>
+            
+            <button class="btn-ctrl btn-time" id="btn-fid" style="background:var(--insta); color:white; flex:1; flex-basis: 100%; margin-top:5px; padding: 12px 0; font-size: 14px;" onclick="window.setQuickTime(10, true)">💳 CARTÃO FIDELIDADE (10m)</button>
         </div>
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px">
             <span>Tempo:</span>
-            <input type="number" id="tempo-padrao" value="10" style="width:60px; text-align:center; font-weight:bold">
+            <input type="number" id="tempo-padrao" value="10" style="width:60px; text-align:center; font-weight:bold" oninput="window.clearFidelidade()">
             <span style="font-size:12px; color:#666">minutos</span>
         </div>
         <div class="frota-grid" id="frota-dinamica"></div>
@@ -401,7 +310,6 @@
 
     <div id="container-cards"></div>
 
-    <!-- RELATÓRIO -->
     <div class="panel">
         <div class="total-box">
             <span>💰 FATURAMENTO (PAGO)</span>
@@ -414,38 +322,36 @@
             <button id="btn-limpar-hist" onclick="window.limparHistorico()" style="display:none; background:var(--danger); color:white; border:none; border-radius:6px; padding:0 15px; font-weight:bold; cursor:pointer">🗑 LIMPAR</button>
         </div>
 
-        <!-- TABELA PRINCIPAL -->
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th>Hora</th>
+                        <th>Período<br><small>(Início / Fim)</small></th>
                         <th>Veículo</th>
                         <th>ID</th>
-                        <th style="text-align:center">Tempo</th>
+                        <th style="text-align:center">Tempo<br><small>(Ajuste)</small></th>
                         <th style="text-align:right">Valor</th>
                         <th style="text-align:center">Status</th>
-                        <th style="width:20px;"></th> <!-- Coluna para o botão de exclusão -->
+                        <th style="width:20px;"></th> 
                     </tr>
                 </thead>
                 <tbody id="corpo-historico"></tbody>
             </table>
         </div>
 
-        <!-- SEÇÃO MINUTOS CONTROLADOS -->
         <div class="ctrl-section" id="ctrl-section" style="display:none">
             <div class="ctrl-section-title">🕹️ MINUTOS CONTROLADOS (Instrutor)</div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Hora</th>
+                            <th>Período</th>
                             <th>Veículo</th>
                             <th>ID</th>
                             <th style="text-align:center">Min. Ctrl.</th>
                             <th>Criança</th>
                             <th>Obs.</th>
-                            <th style="width:20px;"></th> <!-- Coluna para o botão de exclusão -->
+                            <th style="width:20px;"></th>
                         </tr>
                     </thead>
                     <tbody id="corpo-ctrl"></tbody>
@@ -459,18 +365,6 @@
     </div>
 </div>
 
-<!-- MODAL TICKET -->
-<div id="ticket-modal">
-    <div class="login-box" style="width:90%; max-width:300px">
-        <h3>🖨️ Imprimir Ticket</h3>
-        <input type="number" id="ticket-tempo" placeholder="Minutos" value="10">
-        <input type="number" id="ticket-valor" placeholder="Valor (R$)" value="10.00">
-        <button class="btn-main" onclick="window.imprimirTicketManual()">IMPRIMIR AGORA</button>
-        <button onclick="document.getElementById('ticket-modal').style.display='none'" style="margin-top:10px; background:transparent; border:none; color:#333; cursor:pointer">Cancelar</button>
-    </div>
-</div>
-
-<!-- MODAL EDITAR USUÁRIO -->
 <div id="edit-user-modal">
     <div class="login-box" style="width:90%; max-width:350px; text-align:left">
         <h3 style="margin:0 0 15px 0; text-align:center">✏️ Editar Usuário</h3>
@@ -486,7 +380,6 @@
     </div>
 </div>
 
-<!-- MODAL AUDITORIA -->
 <div id="audit-modal">
     <div class="modal-inner">
         <h3 style="margin:0 0 15px 0; text-align:center">🔍 Log de Auditoria - Cliente</h3>
@@ -495,7 +388,6 @@
     </div>
 </div>
 
-<!-- FOOTER SUPORTE -->
 <div class="footer-support" onclick="window.open('https://wa.me/5588981385466', '_blank')">
     <span>🛠️ Suporte Técnico: Jeday Roget</span>
     <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
@@ -520,15 +412,26 @@
     const db  = getFirestore(app);
     let USER_DATA = null;
 
-    // ── contadores por tipo de veículo para gerar ID único na sessão ──
     const contadoresID = {};
-
-    // ── controle de notificações já disparadas ──
     const notificadosAcabou = new Set();
+    let isFidelidadeMode = false; // Controle global do modo fidelidade
 
     // =========================================================
-    // TOAST
+    // FUNÇÕES DE TEMPO E LAYOUT
     // =========================================================
+    function dataLocalISO(ms) {
+        const date = ms ? new Date(ms) : new Date();
+        const opts = { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const parts = new Intl.DateTimeFormat('pt-BR', opts).formatToParts(date);
+        const y = parts.find(p => p.type === 'year').value;
+        const m = parts.find(p => p.type === 'month').value;
+        const d = parts.find(p => p.type === 'day').value;
+        return `${y}-${m}-${d}`;
+    }
+
+    window.toggleLayoutV2 = () => document.getElementById('container-cards').classList.toggle('layout-v2');
+    window.toggleDarkMode = () => document.body.classList.toggle('dark-mode');
+
     function showToast(msg, tipo = 'alerta', duracaoMs = 6000) {
         const div = document.createElement('div');
         div.className = `toast${tipo === 'sucesso' ? ' sucesso' : ''}`;
@@ -538,13 +441,7 @@
     }
 
     // =========================================================
-    // MODO ESCURO
-    // =========================================================
-    window.toggleDarkMode = () => document.body.classList.toggle('dark-mode');
-
-    // =========================================================
     // GERADOR DE ID DO VEÍCULO
-    // prefixo de 2 letras + 5 dígitos: CB00001, CV00001, etc.
     // =========================================================
     function gerarPrefixo(nome) {
         const t = nome.toLowerCase();
@@ -556,21 +453,20 @@
         if (t.includes('carrinho') && t.includes('verd'))   return 'CG';
         if (t.includes('carrinho') && t.includes('pret'))   return 'CP';
         if (t.includes('carrinho') && t.includes('laranj')) return 'CL';
-        if (t.includes('carrinho'))                          return 'CA'; // Default para carrinho
+        if (t.includes('carrinho'))                          return 'CA'; 
         if (t.includes('triciclo') && t.includes('branc'))  return 'TB';
         if (t.includes('triciclo') && t.includes('vermelh'))return 'TV';
         if (t.includes('triciclo') && t.includes('amarel')) return 'TA';
         if (t.includes('triciclo') && t.includes('rosa'))   return 'TR';
         if (t.includes('triciclo') && t.includes('azul'))   return 'TZ';
-        if (t.includes('triciclo'))                          return 'TR'; // Default para triciclo
+        if (t.includes('triciclo'))                          return 'TR'; 
         if (t.includes('moto') && t.includes('branc'))      return 'MB';
         if (t.includes('moto') && t.includes('vermelh'))    return 'MV';
         if (t.includes('moto') && t.includes('pret'))       return 'MP';
-        if (t.includes('moto'))                              return 'MT'; // Default para moto
+        if (t.includes('moto'))                              return 'MT'; 
         if (t.includes('patinete'))                          return 'PT';
         if (t.includes('quadriciclo'))                       return 'QD';
         if (t.includes('jipe'))                              return 'JP';
-        // fallback: 2 primeiras letras maiúsculas
         return nome.replace(/\s/g,'').substring(0,2).toUpperCase();
     }
 
@@ -585,7 +481,7 @@
     // =========================================================
     async function gravarAuditoria(tipo, descricao, dadosAntes = null) {
         if (!USER_DATA) return;
-        if (USER_DATA.usuario !== 'Cliente' && USER_DATA.nome !== 'Cliente') return; // Apenas o usuário "Cliente" é auditado
+        if (USER_DATA.usuario !== 'Cliente' && USER_DATA.nome !== 'Cliente') return; 
         await addDoc(collection(db, 'auditoria_cliente'), {
             tipo, descricao,
             dadosAntes: dadosAntes ? JSON.stringify(dadosAntes) : null,
@@ -603,7 +499,6 @@
         const user   = document.getElementById('user').value;
         const pass   = document.getElementById('pass').value;
 
-        // JEDAY MASTER — senha 104101
         if (user === "Jeday" && pass === "104101") {
             loginSucesso({
                 nome: "Jeday", usuario: "Jeday", cidade: "Cedro",
@@ -614,12 +509,11 @@
             return;
         }
 
-        // CLIENTE (operador dos brinquedos de Jeday)
         if (user === "Cliente" && pass === "1234") {
             loginSucesso({
-                nome: "Jeday",          // Usa a coleção de Jeday para ativos e histórico
-                usuario: "Cliente",     // Identidade real para auditoria
-                nomeExibido: "Cliente", // Nome a ser exibido na tela
+                nome: "Jeday",          
+                usuario: "Cliente",     
+                nomeExibido: "Cliente", 
                 cidade: "Cedro", status: "ativo", isMaster: false, isCliente: true,
                 frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Patinete",
                 preco: 1, validade: 9999999999999
@@ -666,14 +560,25 @@
 
         montarFrota();
         iniciarCards();
-        const hoje = new Date().toISOString().split('T')[0];
-        document.getElementById('filtro-data').value = hoje;
+        document.getElementById('filtro-data').value = dataLocalISO();
         window.carregarHistorico();
     }
 
     // =========================================================
-    // FROTA
+    // FROTA E FIDELIDADE
     // =========================================================
+    window.setQuickTime = (v, isFid = false) => {
+        document.getElementById('tempo-padrao').value = v;
+        isFidelidadeMode = isFid;
+        document.querySelectorAll('.btn-time').forEach(b => b.classList.remove('fid-active'));
+        if(isFid) document.getElementById('btn-fid').classList.add('fid-active');
+    };
+
+    window.clearFidelidade = () => {
+        isFidelidadeMode = false;
+        document.querySelectorAll('.btn-time').forEach(b => b.classList.remove('fid-active'));
+    };
+
     function montarFrota() {
         const div = document.getElementById('frota-dinamica');
         div.innerHTML = "";
@@ -686,14 +591,15 @@
 
     function descobrirCor(t) {
         t = t.toLowerCase();
-        if (t.includes('vermelh')) return 'cor-vermelho';
-        if (t.includes('branc'))   return 'cor-branco';
-        if (t.includes('amarel'))  return 'cor-amarelo';
-        if (t.includes('rosa'))    return 'cor-rosa';
-        if (t.includes('azul'))    return 'cor-azul';
-        if (t.includes('verd'))    return 'cor-verde';
-        if (t.includes('pret'))    return 'cor-preto';
-        if (t.includes('laranj'))  return 'cor-laranja';
+        if (t.includes('vermelh'))  return 'cor-vermelho';
+        if (t.includes('branc'))    return 'cor-branco';
+        if (t.includes('amarel'))   return 'cor-amarelo';
+        if (t.includes('rosa'))     return 'cor-rosa';
+        if (t.includes('azul'))     return 'cor-azul';
+        if (t.includes('verd'))     return 'cor-verde';
+        if (t.includes('pret'))     return 'cor-preto';
+        if (t.includes('laranj'))   return 'cor-laranja';
+        if (t.includes('patinete')) return 'cor-cinza'; // Patinete cinza adicionado
         return 'cor-padrao';
     }
 
@@ -704,6 +610,9 @@
         const min   = parseInt(document.getElementById('tempo-padrao').value);
         const agora = Date.now();
         const idVeiculo = gerarIDVeiculo(veiculo);
+        
+        // Verifica se é fidelidade
+        const fidMode = isFidelidadeMode;
 
         await addDoc(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), {
             veiculo, idVeiculo,
@@ -711,15 +620,19 @@
             timestamp: agora,
             fimTimestamp: agora + (min * 60000),
             minutosContratados: min,
-            pago: "Não", pausado: false,
+            pago: fidMode ? "FIDELIDADE" : "Não", 
+            isFidelidade: fidMode,
+            pausado: false,
             msRestantes: min * 60000,
             totalMsPausado: 0,
             precoBase: USER_DATA.preco,
             modalidadeLivre: min >= 9999,
             minutosControlados: 0,
-            tempoAjustado: 0 // Novo campo para feedback de tempo
+            tempoAjustado: 0 
         });
+        
         document.getElementById('nome-crianca').value = "";
+        window.clearFidelidade(); // Desmarca fidelidade para o próximo
     };
 
     function iniciarCards() {
@@ -727,7 +640,6 @@
             const div    = document.getElementById('container-cards');
             const ativos = snap.docs.map(d => d.id);
 
-            // Remove cards que sumiram
             document.querySelectorAll('.card').forEach(c => {
                 const id = c.id.replace('c-','');
                 if (!ativos.includes(id)) {
@@ -747,16 +659,17 @@
                             <div style="display:flex; justify-content:space-between; align-items:flex-start">
                                 <div>
                                     <b>${d.veiculo}</b>
-                                    <span class="id-badge">${d.idVeiculo || '—'}</span><br>
+                                    <span class="id-badge">${d.idVeiculo || '—'}</span>
+                                    ${d.isFidelidade ? '<span class="fidelidade-badge">💳 FIDELIDADE</span>' : ''}<br>
                                     <small>${d.crianca}</small>
                                 </div>
-                                <button id="pg-${id}" onclick="window.pg('${id}')"
-                                    style="border:none; border-radius:5px; font-weight:bold; cursor:pointer; padding:5px 10px">
+                                <button id="pg-${id}" onclick="event.stopPropagation(); window.pg('${id}')"
+                                    style="border:none; border-radius:8px; font-weight:bold; cursor:pointer; padding:8px 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 </button>
                             </div>
 
                             <div class="timer-big" id="t-${id}">00:00</div>
-                            <div class="time-feedback-display" id="tf-${id}"></div> <!-- Feedback de tempo -->
+                            <div class="time-feedback-display" id="tf-${id}"></div>
 
                             <div class="card-controls">
                                 <button class="btn-ctrl" style="background:#e67e22" onclick="window.add('${id}',-1)">-1m</button>
@@ -766,7 +679,6 @@
                                 <button class="btn-ctrl" style="background:#c0392b" onclick="window.fim('${id}')">FIM</button>
                             </div>
 
-                            <!-- CAIXA MINUTO CONTROLADO -->
                             <div class="ctrl-box">
                                 <label>🕹️ Min. Controlados:</label>
                                 <input
@@ -785,24 +697,26 @@
                     el = document.getElementById(`c-${id}`);
                 }
 
-                // Atualiza botão de pagamento
+                // UI do Botão Pagamento (garantindo atualização instantânea sem recriar DOM)
                 const btnPg = document.getElementById(`pg-${id}`);
-                btnPg.innerText        = d.pago === 'Sim' ? '✅ PAGO' : 'PENDENTE';
-                btnPg.style.background = d.pago === 'Sim' ? '#d4edda' : '#f8d7da';
-                btnPg.style.color      = d.pago === 'Sim' ? '#155724' : '#721c24';
+                if(d.isFidelidade) {
+                    btnPg.innerText = '💳 FIDELIDADE';
+                    btnPg.style.background = '#e1bee7';
+                    btnPg.style.color = '#4a148c';
+                } else {
+                    btnPg.innerText        = d.pago === 'Sim' ? '✅ PAGO' : 'PENDENTE';
+                    btnPg.style.background = d.pago === 'Sim' ? '#d4edda' : '#f8d7da';
+                    btnPg.style.color      = d.pago === 'Sim' ? '#155724' : '#721c24';
+                }
 
-                // Pausa
                 const psBtn = document.getElementById(`ps-${id}`);
                 if (psBtn) psBtn.innerText = d.pausado ? '▶' : '⏸';
-                el.classList.toggle('paused', d.pausado);
 
-                // Atualiza o input de minutos controlados
                 const mcInput = document.getElementById(`mc-input-${id}`);
-                if (mcInput && document.activeElement !== mcInput) { // Evita sobrescrever enquanto o usuário digita
+                if (mcInput && document.activeElement !== mcInput) { 
                     mcInput.value = d.minutosControlados || 0;
                 }
 
-                // Atualiza feedback de tempo ajustado
                 const tfDisplay = document.getElementById(`tf-${id}`);
                 if (tfDisplay) {
                     if (d.tempoAjustado > 0) {
@@ -817,8 +731,6 @@
                     }
                 }
 
-
-                // Timer
                 if (window[`tm-${id}`]) clearInterval(window[`tm-${id}`]);
                 let jaNotificou = notificadosAcabou.has(id);
 
@@ -829,19 +741,14 @@
                     const mcInp   = document.getElementById(`mc-input-${id}`);
                     if (!timerEl || !cardEl) { clearInterval(window[`tm-${id}`]); return; }
 
-                    // Calcula tempo decorrido real
                     const decorrido = Date.now() - d.timestamp - (d.totalMsPausado || 0);
                     const minsRodados = d.modalidadeLivre
                         ? Math.floor(decorrido / 60000)
                         : Math.min(d.minutosContratados, Math.floor(decorrido / 60000));
 
-                    // Atualiza label do limite
                     if (limEl) limEl.innerText = `de ${minsRodados} min rodados`;
-
-                    // Sincroniza max do input com o que foi rodado
                     if (mcInp) mcInp.max = minsRodados;
 
-                    // Exibe o timer
                     let rest;
                     if (d.modalidadeLivre) {
                         rest = decorrido;
@@ -852,25 +759,46 @@
                     const s = Math.floor(rest / 1000);
                     timerEl.innerText = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
 
-                    // Notificação de fim
-                    if (!d.modalidadeLivre && !d.pausado && rest <= 0) {
+                    // Lógica de Cores e Animações
+                    if (d.pausado) {
+                        cardEl.classList.remove('running', 'warning-yellow', 'warning-red');
+                        cardEl.classList.add('paused');
+                        timerEl.classList.remove('zerado');
+                    } else if (!d.modalidadeLivre && rest <= 0) {
                         timerEl.classList.add('zerado');
+                        cardEl.classList.remove('running', 'warning-yellow', 'warning-red', 'paused');
                         cardEl.classList.add('acabou');
                         if (!jaNotificou) {
                             jaNotificou = true;
                             notificadosAcabou.add(id);
-                            showToast(`⏰ ${d.veiculo} (${d.idVeiculo || ''}) — Tempo esgotado! Chame a criança.`, 'alerta', 8000);
+                            showToast(`⏰ ${d.veiculo} (${d.idVeiculo || ''}) — Tempo esgotado!`, 'alerta', 8000);
                             try {
-                                const utterance = new SpeechSynthesisUtterance(
-                                    `Atenção! O tempo do ${d.veiculo} acabou!`
-                                );
+                                const utterance = new SpeechSynthesisUtterance(`Atenção! O tempo do ${d.veiculo} acabou!`);
                                 utterance.lang = 'pt-BR';
                                 speechSynthesis.speak(utterance);
-                            } catch(e) { console.error("Erro ao usar SpeechSynthesis:", e); }
+                            } catch(e) { console.error(e); }
                         }
-                    } else if (rest > 0) {
+                    } else {
                         timerEl.classList.remove('zerado');
-                        cardEl.classList.remove('acabou');
+                        cardEl.classList.remove('acabou', 'paused');
+                        
+                        if (!d.modalidadeLivre) {
+                            const totalMs = d.minutosContratados * 60000;
+                            const pct = rest / totalMs;
+                            if (pct <= 0.2) { // Últimos 20%
+                                cardEl.classList.add('warning-red');
+                                cardEl.classList.remove('warning-yellow', 'running');
+                            } else if (pct <= 0.5) { // Passou da metade
+                                cardEl.classList.add('warning-yellow');
+                                cardEl.classList.remove('warning-red', 'running');
+                            } else { // Início tranquilo
+                                cardEl.classList.add('running');
+                                cardEl.classList.remove('warning-yellow', 'warning-red');
+                            }
+                        } else {
+                            cardEl.classList.add('running');
+                            cardEl.classList.remove('warning-yellow', 'warning-red');
+                        }
                     }
                 }, 1000);
             });
@@ -884,33 +812,28 @@
         const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
         const d = (await getDoc(r)).data();
         await updateDoc(r, {
-            pausado: d.pausado, // Mantém o estado de pausa
+            pausado: d.pausado, 
             fimTimestamp: d.pausado ? d.fimTimestamp : d.fimTimestamp + (m*60000),
             msRestantes: d.pausado ? d.msRestantes + (m*60000) : d.msRestantes,
-            tempoAjustado: (d.tempoAjustado || 0) + m // Atualiza o feedback
+            tempoAjustado: (d.tempoAjustado || 0) + m 
         });
     };
 
-    // Define minutos controlados (substitui addCtrl)
     window.setCtrl = async (id, valor) => {
         const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
         const d = (await getDoc(r)).data();
-
-        // Calcula o máximo permitido (minutos realmente rodados)
-        const decorrido   = Date.Now() - d.timestamp - (d.totalMsPausado || 0);
+        const decorrido   = Date.now() - d.timestamp - (d.totalMsPausado || 0);
         const minsRodados = d.modalidadeLivre
             ? Math.floor(decorrido / 60000)
             : Math.min(d.minutosContratados, Math.floor(decorrido / 60000));
 
         let novo = parseInt(valor) || 0;
-        novo = Math.max(0, Math.min(novo, minsRodados)); // nunca passa do total rodado
+        novo = Math.max(0, Math.min(novo, minsRodados)); 
 
-        // Atualiza visualmente o input se o valor foi cortado
         const inp = document.getElementById(`mc-input-${id}`);
         if (inp && parseInt(inp.value) !== novo) {
             inp.value = novo;
         }
-
         await updateDoc(r, { minutosControlados: novo });
     };
 
@@ -925,7 +848,7 @@
                 pausado: d.pausado,
                 fimTimestamp: d.pausado ? d.fimTimestamp : d.fimTimestamp + (bonus*60000),
                 msRestantes: d.pausado ? d.msRestantes + (bonus*60000) : d.msRestantes,
-                tempoAjustado: (d.tempoAjustado || 0) + bonus // Atualiza o feedback
+                tempoAjustado: (d.tempoAjustado || 0) + bonus 
             });
         }
     };
@@ -939,9 +862,14 @@
             await updateDoc(r, { pausado: true, msRestantes: d.fimTimestamp - now, ultimoPause: now });
     };
 
+    // Botão de alterar o pagamento do CARD ATIVO
     window.pg = async (id) => {
         const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
         const d = (await getDoc(r)).data();
+        if (d.isFidelidade) {
+            showToast("Esse uso é de Fidelidade e não tem valor a pagar.", "alerta", 3000);
+            return;
+        }
         const novo = d.pago === 'Sim' ? 'Não' : 'Sim';
         await gravarAuditoria('edicao_status', `Alterou pagamento do card "${d.veiculo}" de "${d.pago}" para "${novo}"`, d);
         await updateDoc(r, { pago: novo });
@@ -956,34 +884,36 @@
         const decorrido = now - d.timestamp - (d.totalMsPausado || 0);
         let minsReais   = Math.max(1, Math.floor(decorrido / 60000));
         let minsCobrar  = d.modalidadeLivre ? minsReais : Math.min(minsReais, d.minutosContratados);
-        const val       = minsCobrar * d.precoBase;
+        
+        let val = minsCobrar * d.precoBase;
+        if (d.isFidelidade) val = 0; // Fidelidade tem custo zero
 
-        // Sincroniza min. controlados: não pode exceder o tempo real cobrado
         const ctrlBruto = d.minutosControlados || 0;
         const ctrlFinal = Math.min(ctrlBruto, minsCobrar);
 
-        // Pede observação se o usuário for "Cliente"
         let observacao = "";
         if (USER_DATA.isCliente) {
             observacao = prompt("Deseja adicionar uma observação para este uso? (Opcional)");
-            if (observacao === null) return; // Se cancelar, não finaliza
+            if (observacao === null) return; 
         }
-
 
         await addDoc(collection(db, `hist_${USER_DATA.nome}_${USER_DATA.cidade}`), {
             veiculo:            d.veiculo,
-            idVeiculo:          d.idVeiculo || gerarIDVeiculo(d.veiculo), // Garante ID mesmo se faltar
+            idVeiculo:          d.idVeiculo || gerarIDVeiculo(d.veiculo), 
             valor:              val,
-            pago:               d.pago,
+            pago:               d.isFidelidade ? "FIDELIDADE" : d.pago,
             data:               now,
+            horaInicio:         d.timestamp, // <--- Salvando hora exata do início
+            horaFim:            now,         // <--- Salvando hora exata do fim
             tempo:              minsCobrar,
+            tempoAjustado:      d.tempoAjustado || 0,
             minutosControlados: ctrlFinal,
             crianca:            d.crianca || "",
             operador:           USER_DATA.usuario || USER_DATA.nome,
-            observacao:         observacao || "" // Salva a observação
+            observacao:         observacao || "" 
         });
 
-        notificadosAcabou.delete(id); // Limpa notificação para este card
+        notificadosAcabou.delete(id); 
         await deleteDoc(r);
     };
 
@@ -1014,29 +944,42 @@
                 let total    = 0, totalCtrl = 0;
                 tb.innerHTML = ""; tbCtrl.innerHTML = "";
 
+                const formatarHora = (ms) => new Date(ms).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
                 snap.forEach(docu => {
                     const h   = docu.data();
-                    const dia = new Date(h.data).toISOString().split('T')[0];
+                    const dia = dataLocalISO(h.data); 
                     if (dataF && dataF !== dia) return;
 
                     if (h.pago === 'Sim') total += h.valor;
-                    const hora    = new Date(h.data).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-                    const idBadge = h.idVeiculo ? `<span class="id-badge">${h.idVeiculo}</span>` : '—';
+                    
+                    const hInicio = h.horaInicio ? formatarHora(h.horaInicio) : formatarHora(h.data);
+                    const hFim    = h.horaFim ? formatarHora(h.horaFim) : formatarHora(h.data);
 
-                    // Botão de exclusão visível apenas para Jeday
+                    const idBadge = h.idVeiculo ? `<span class="id-badge">${h.idVeiculo}</span>` : '—';
                     const btnDelHtml = USER_DATA.isMaster ?
                         `<button class="btn-del-hist-item" onclick="window.delHistItem('${docu.id}', '${colName}')">X</button>` : '';
 
-                    // Tabela principal
+                    const exibeAjuste = h.tempoAjustado ? 
+                        `<br><small style="color:${h.tempoAjustado > 0 ? 'var(--time-feedback-add)' : 'var(--time-feedback-rem)'}; font-weight:bold;">(${h.tempoAjustado > 0 ? '+' : ''}${h.tempoAjustado}m)</small>` 
+                        : '';
+
+                    // Define classe visual pelo status (Sim, Não, Fidelidade)
+                    let statusClass = 'st-pend';
+                    if (h.pago === 'Sim') statusClass = 'st-pago';
+                    if (h.pago === 'FIDELIDADE') statusClass = 'st-fid';
+
                     tb.innerHTML += `
                         <tr>
-                            <td>${hora}</td>
+                            <td>${hInicio}<br><small style="color:#7f8c8d">${hFim}</small></td>
                             <td>${h.veiculo}</td>
                             <td>${idBadge}</td>
-                            <td style="text-align:center">${h.tempo}m</td>
+                            <td style="text-align:center; vertical-align:middle;">
+                                ${h.tempo}m ${exibeAjuste}
+                            </td>
                             <td class="valor-cell" style="text-align:right">R$ ${h.valor.toFixed(2)}</td>
                             <td style="text-align:center">
-                                <span class="status-cell ${h.pago==='Sim'?'st-pago':'st-pend'}"
+                                <span class="status-cell ${statusClass}"
                                     onclick="window.toggleHistPg('${docu.id}','${colName}','${h.pago}')">
                                     ${h.pago}
                                 </span>
@@ -1044,13 +987,12 @@
                             <td>${btnDelHtml}</td>
                         </tr>`;
 
-                    // Tabela minutos controlados
                     const mc = h.minutosControlados || 0;
                     if (mc > 0) {
                         totalCtrl += mc;
                         tbCtrl.innerHTML += `
                             <tr>
-                                <td>${hora}</td>
+                                <td>${hInicio}</td>
                                 <td>${h.veiculo}</td>
                                 <td>${idBadge}</td>
                                 <td style="text-align:center">
@@ -1077,6 +1019,7 @@
     };
 
     window.toggleHistPg = async (docId, colName, statusAtual) => {
+        if (statusAtual === 'FIDELIDADE') return showToast("Cartão Fidelidade não pode ser alterado.", "alerta", 3000);
         const novoStatus = statusAtual === 'Sim' ? 'Não' : 'Sim';
         const snap = await getDoc(doc(db, colName, docId));
         await gravarAuditoria('edicao_status',
@@ -1085,17 +1028,15 @@
         await updateDoc(doc(db, colName, docId), { pago: novoStatus });
     };
 
-    // Excluir item individual do histórico (apenas Jeday)
     window.delHistItem = async (docId, colName) => {
-        if (!USER_DATA.isMaster) return; // Apenas Jeday pode excluir
+        if (!USER_DATA.isMaster) return; 
         if (!confirm("Tem certeza que deseja excluir este item do histórico?")) return;
         await deleteDoc(doc(db, colName, docId));
         showToast("Item do histórico excluído!", 'sucesso', 2500);
     };
 
-    // Atualizar observação no histórico (apenas Cliente)
     window.updateObs = async (docId, colName, newObs) => {
-        if (!USER_DATA.isCliente) return; // Apenas Cliente pode adicionar observação
+        if (!USER_DATA.isCliente) return; 
         const snap = await getDoc(doc(db, colName, docId));
         await gravarAuditoria('edicao_observacao',
             `Alterou observação do histórico: "${snap.data()?.veiculo}" de "${snap.data()?.observacao || ''}" para "${newObs}"`,
@@ -1103,7 +1044,6 @@
         await updateDoc(doc(db, colName, docId), { observacao: newObs });
         showToast("Observação atualizada!", 'sucesso', 2000);
     };
-
 
     window.limparHistorico = async () => {
         if (!USER_DATA.isMaster) return;
@@ -1115,22 +1055,6 @@
         snap.forEach(d => batch.delete(d.ref));
         await batch.commit();
         showToast("Histórico limpo!", 'sucesso', 3000);
-    };
-
-    // =========================================================
-    // TICKET
-    // =========================================================
-    window.abrirModalTicket = () => document.getElementById('ticket-modal').style.display = 'flex';
-
-    window.imprimirTicketManual = () => {
-        const min = document.getElementById('ticket-tempo').value;
-        const val = parseFloat(document.getElementById('ticket-valor').value || 0).toFixed(2);
-        document.getElementById('print-cidade').innerText = USER_DATA.cidade.toUpperCase();
-        document.getElementById('print-tempo').innerText  = `${min} MINUTOS`;
-        document.getElementById('print-valor').innerText  = `R$ ${val}`;
-        document.getElementById('print-data').innerText   = `Data: ${new Date().toLocaleString()}`;
-        window.print();
-        document.getElementById('ticket-modal').style.display = 'none';
     };
 
     // =========================================================
@@ -1147,7 +1071,6 @@
                 const u = d.data();
                 sel.innerHTML += `<option value="${u.nome}_${u.cidade}">${u.cidade} - ${u.nome}</option>`;
 
-                // Monitor global de ativos
                 onSnapshot(collection(db, `ativos_${u.nome}_${u.cidade}`), (sA) => {
                     const mon   = document.getElementById('global-monitor');
                     const divId = `gm-${d.id}`;
@@ -1237,35 +1160,11 @@
         if (!confirm("Aprovar este usuário?")) return;
         await updateDoc(doc(db, "usuarios", id), {
             status: 'ativo',
-            validade: Date.now() + 86400000 // 1 dia
+            validade: Date.now() + 86400000
         });
         showToast("Usuário aprovado!", "sucesso", 2500);
     };
 
-    // Criador padrão (opcional)
-    window.criarUsuariosPadrao = async () => {
-        if (!confirm("Criar Cydinha e Thallys em Cedro?")) return;
-        const batch = writeBatch(db);
-
-        const ref1 = doc(collection(db, "usuarios"));
-        batch.set(ref1, {
-            nome: "Cydinha", usuario: "Cydinha", pass: "1234", cidade: "Cedro",
-            preco: 1.0, whatsapp: "", frota: "Carrinho Rosa, Moto Branca",
-            status: "ativo", validade: Date.now() + 365*86400000
-        });
-
-        const ref2 = doc(collection(db, "usuarios"));
-        batch.set(ref2, {
-            nome: "Thallys", usuario: "Thallys", pass: "1234", cidade: "Cedro",
-            preco: 1.0, whatsapp: "", frota: "Carrinho Azul, Moto Preta",
-            status: "ativo", validade: Date.now() + 365*86400000
-        });
-
-        await batch.commit();
-        showToast("Usuários criados!", "sucesso", 2500);
-    };
-
-    // AUDITORIA (ver pelo Jeday)
     window.abrirAuditoria = async () => {
         const container = document.getElementById('audit-lista');
         container.innerHTML = 'Carregando...';
@@ -1320,8 +1219,6 @@
     // =========================================================
     // UTIL GERAIS
     // =========================================================
-    window.setQuickTime = (v) => document.getElementById('tempo-padrao').value = v;
-
     window.toggleMasterPanel = () => {
         const p = document.getElementById('master-panel');
         p.style.display = p.style.display === 'block' ? 'none' : 'block';
