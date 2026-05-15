@@ -390,7 +390,7 @@
         <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center">
             <input type="date" id="filtro-data" style="margin:0; flex:1" onchange="window.carregarHistorico()">
             <button onclick="window.limparFiltroData()" style="background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; padding:10px; cursor:pointer; font-family:'Orbitron',sans-serif; font-size:11px">RESET</button>
-            <button id="btn-limpar-hist" onclick="window.limparHistorico()" style="display:none; background:transparent; color:var(--danger); border:1px solid var(--danger); border-radius:6px; padding:0 15px; cursor:pointer; font-family:'Orbitron',sans-serif; font-size:11px">PURGE</button>
+            <button id="btn-limpar-hist" onclick="window.limparHistorico()" style="display:none; background:transparent; color:var(--danger); border:1px solid var(--danger); border-radius:6px; padding:0 15px; cursor:pointer; font-family:'Orbitron',sans-serif; font-size:11px">DELETAR HISTÓRICO</button>
         </div>
 
         <div class="table-container">
@@ -799,7 +799,7 @@
                                 <button class="btn-ctrl" onclick="window.add('${id}',1)">+1m</button>
                                 <button class="btn-ctrl" onclick="window.addBonus('${id}')">🎁 20%</button>
                                 <button class="btn-ctrl" id="ps-${id}" onclick="window.ps('${id}')">⏸</button>
-                                <button class="btn-ctrl" onclick="window.fim('${id}')">KILL</button>
+                                <button class="btn-ctrl" onclick="window.fim('${id}')">FINALIZAR</button>
                             </div>
 
                             <div class="ctrl-box">
@@ -821,7 +821,7 @@
                     btnPg.style.color = 'var(--insta)';
                     btnPg.style.boxShadow = '0 0 10px rgba(188, 19, 254, 0.2)';
                 } else {
-                    btnPg.innerText        = d.pago === 'Sim' ? '✅ AUTH' : 'PENDING';
+                    btnPg.innerText        = d.pago === 'Sim' ? '✅ PAGO' : 'PENDENTE';
                     btnPg.style.borderColor = d.pago === 'Sim' ? 'var(--success)' : 'var(--danger)';
                     btnPg.style.color      = d.pago === 'Sim' ? 'var(--success)' : 'var(--danger)';
                     btnPg.style.boxShadow  = d.pago === 'Sim' ? '0 0 10px rgba(0,255,157,0.2)' : '0 0 10px rgba(255,0,60,0.2)';
