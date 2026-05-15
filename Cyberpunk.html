@@ -50,7 +50,7 @@
             transition: all 0.4s ease;
         }
 
-        /* Telas de Acesso (Recuperadas e Estilizadas) */
+        /* Telas de Acesso */
         #login-screen, #register-screen { 
             display: flex; flex-direction: column; justify-content: center; align-items: center; 
             height: 100vh; position: fixed; width: 100%; z-index: 2000; top: 0; left: 0; 
@@ -62,6 +62,7 @@
             background: var(--panel-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             padding: 40px 30px; border-radius: 15px; border: 1px solid var(--primary-glow); 
             box-shadow: 0 0 40px rgba(0, 243, 255, 0.1); width: 320px; text-align: center; 
+            max-height: 90vh; overflow-y: auto;
         }
 
         .btn-main {
@@ -73,6 +74,13 @@
         }
         .btn-main:hover { background: var(--primary); color: #000; box-shadow: 0 0 25px var(--primary-glow); }
         .btn-main:active { transform: scale(0.97); }
+
+        .btn-link {
+            background: transparent; color: var(--text-muted); border: none;
+            margin-top: 15px; cursor: pointer; font-family: 'Orbitron', sans-serif; font-size: 12px;
+            text-decoration: underline; transition: 0.2s; width: 100%;
+        }
+        .btn-link:hover { color: var(--primary); }
 
         /* App Principal */
         #app-screen { padding: 15px; max-width: 600px; margin: 0 auto; display: none; }
@@ -110,7 +118,7 @@
             color: var(--primary); font-weight: 600;
             transition: all 0.3s ease;
         }
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 10px var(--primary-glow);
@@ -276,7 +284,7 @@
 
 <div id="toast-container"></div>
 
-<!-- TELA DE LOGIN RESTAURADA COM DESIGN CYBERPUNK -->
+<!-- TELA DE LOGIN -->
 <div id="login-screen">
     <div class="login-box">
         <h2 style="color: var(--primary); margin:0 0 25px 0; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 10px var(--primary-glow); letter-spacing: 2px;">SYS.LOGIN</h2>
@@ -286,10 +294,28 @@
         <input type="text" id="user" placeholder="Sys_ID (Usuário)">
         <input type="password" id="pass" placeholder="Auth_Key (Senha)">
         <button class="btn-main" onclick="window.tentarLogin()">INITIALIZE</button>
+        <button class="btn-link" onclick="window.switchScreen('register')">>> REQUEST ACCESS_ (NOVO CADASTRO)</button>
     </div>
 </div>
 
-<div id="register-screen"></div>
+<!-- TELA DE REGISTRO -->
+<div id="register-screen">
+    <div class="login-box">
+        <h3 style="color: var(--primary); margin:0 0 20px 0; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 10px var(--primary-glow);">NEW_PARTNER REQ</h3>
+        <input type="text" id="reg-nome" placeholder="Nome Completo">
+        <input type="text" id="reg-user" placeholder="Sys_ID (Login desejado)">
+        <input type="password" id="reg-pass" placeholder="Auth_Key (Senha)">
+        <select id="reg-cidade">
+            <option value="Cedro">Cedro</option>
+        </select>
+        <input type="number" id="reg-preco" placeholder="Preço do Minuto (Ex: 1.00)">
+        <input type="text" id="reg-zap" placeholder="WhatsApp (DDD+Num)">
+        <textarea id="reg-frota" placeholder="Veículos (Ex: Carrinho Branco, Patinete)" rows="2"></textarea>
+        
+        <button class="btn-main" onclick="window.cadastrarUsuario()">SEND_REQUEST</button>
+        <button class="btn-link" onclick="window.switchScreen('login')"><< RETURN_ (VOLTAR)</button>
+    </div>
+</div>
 
 <div id="app-screen">
     <header>
@@ -315,8 +341,13 @@
             <div style="font-size:10px; font-weight:700; color:var(--text-muted); margin-bottom:8px; font-family:'Orbitron',sans-serif;">GLOBAL MONITOR:</div>
             <div id="global-monitor" style="display:flex; flex-wrap:wrap; gap:5px;">Aguardando link...</div>
         </div>
+        
         <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
+        <div style="font-size:10px; font-weight:700; color:var(--primary); margin-bottom:8px; font-family:'Orbitron',sans-serif;">REMOTE OVERRIDE (MUDAR AMBIENTE):</div>
+        <select id="filtro-master-user" style="display:none; margin:0 0 15px 0;" onchange="window.mudarVisaoMaster()"></select>
+        
         <button onclick="window.abrirAuditoria()" style="background:transparent; color:var(--primary); border:1px solid var(--primary); padding:10px 20px; border-radius:6px; font-weight:700; width:100%; cursor:pointer; font-family:'Orbitron',sans-serif; transition:0.3s;" onmouseover="this.style.boxShadow='0 0 15px var(--primary-glow)'" onmouseout="this.style.boxShadow='none'">ACCESS AUDIT LOGS</button>
+        
         <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
         <div style="margin-top:15px">
             <div style="font-size:10px; font-weight:700; color:var(--text-muted); margin-bottom:8px; font-family:'Orbitron',sans-serif;">USERS DIRECTORY:</div>
@@ -359,7 +390,6 @@
         <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center">
             <input type="date" id="filtro-data" style="margin:0; flex:1" onchange="window.carregarHistorico()">
             <button onclick="window.limparFiltroData()" style="background:transparent; color:var(--text); border:1px solid var(--border); border-radius:6px; padding:10px; cursor:pointer; font-family:'Orbitron',sans-serif; font-size:11px">RESET</button>
-            <select id="filtro-master-user" style="display:none; margin:0; flex:1" onchange="window.carregarHistorico()"></select>
             <button id="btn-limpar-hist" onclick="window.limparHistorico()" style="display:none; background:transparent; color:var(--danger); border:1px solid var(--danger); border-radius:6px; padding:0 15px; cursor:pointer; font-family:'Orbitron',sans-serif; font-size:11px">PURGE</button>
         </div>
 
@@ -406,6 +436,7 @@
     </div>
 </div>
 
+<!-- MODAL EDIÇÃO USUÁRIO -->
 <div id="edit-user-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; justify-content:center; align-items:center;">
     <div class="modal-inner">
         <h3 style="margin:0 0 15px 0; text-align:center; font-family:'Orbitron',sans-serif; color:var(--primary)">USER CONFIG</h3>
@@ -421,6 +452,7 @@
     </div>
 </div>
 
+<!-- MODAL AUDITORIA -->
 <div id="audit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; justify-content:center; align-items:center;">
     <div class="modal-inner">
         <h3 style="margin:0 0 15px 0; text-align:center; font-family:'Orbitron',sans-serif; color:var(--primary)">SYS.AUDIT</h3>
@@ -452,6 +484,7 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
     let USER_DATA = null;
+    let targetCollectionSuffix = ""; // CONTROLA A VISÃO ATUAL DO MASTER
 
     const contadoresID = {};
     const notificadosAcabou = new Set();
@@ -470,6 +503,11 @@
 
     window.toggleLayoutV2 = () => document.getElementById('container-cards').classList.toggle('layout-v2');
     window.toggleDarkMode = () => document.body.classList.toggle('dark-mode');
+
+    window.switchScreen = (s) => {
+        document.getElementById('login-screen').style.display    = s === 'login'    ? 'flex' : 'none';
+        document.getElementById('register-screen').style.display = s === 'register' ? 'flex' : 'none';
+    };
 
     function showToast(msg, tipo = 'alerta', duracaoMs = 6000) {
         const div = document.createElement('div');
@@ -535,9 +573,20 @@
         const pass   = document.getElementById('pass').value;
 
         // VERIFICAÇÃO DE ADMINS (Jeday e Thallys)
-        if ((user === "Jeday" && (pass === "123456" || pass === "104101")) || (user === "Thallys" && pass === "123456")) {
+        if (user === "Jeday" && (pass === "123456" || pass === "104101")) {
             loginSucesso({
-                nome: user, usuario: user, cidade: cidade,
+                nome: "Jeday", usuario: "Jeday", cidade: cidade,
+                status: "ativo", isMaster: true,
+                frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Triciclo Fogo, Patinete",
+                preco: 1, validade: 9999999999999
+            });
+            return;
+        }
+
+        if (user === "Thallys" && pass === "123456") {
+            loginSucesso({
+                nome: "Jeday", // <-- FIX: Aponta para o BD do Jeday
+                usuario: "Thallys", nomeExibido: "Thallys", cidade: cidade,
                 status: "ativo", isMaster: true,
                 frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Triciclo Fogo, Patinete",
                 preco: 1, validade: 9999999999999
@@ -548,7 +597,8 @@
         // VERIFICAÇÃO CLIENTE NORMAL
         if (user === "Cliente" && pass === "123456") {
             loginSucesso({
-                nome: "Cliente", usuario: "Cliente", nomeExibido: "Operador Cliente", 
+                nome: "Jeday", // <-- FIX: Aponta para o BD do Jeday
+                usuario: "Cliente", nomeExibido: "Operador Cliente", 
                 cidade: cidade, status: "ativo", isMaster: false, isCliente: true,
                 frota: "Carrinho Branco, Carrinho Vermelho, Triciclo Amarelo, Triciclo Branco, Triciclo Rosa, Triciclo Fogo, Patinete",
                 preco: 1, validade: 9999999999999
@@ -556,7 +606,7 @@
             return;
         }
 
-        // Fallback pro Firebase caso adicione no futuro outros DBs dinâmicos
+        // Fallback pro Firebase (Para contas aprovadas via BD)
         try {
             let q = query(collection(db,"usuarios"), where("usuario","==",user), where("cidade","==",cidade));
             let snap = await getDocs(q);
@@ -578,9 +628,12 @@
 
     function loginSucesso(dados) {
         USER_DATA = dados;
+        // Agora todos da cidade de Cedro usarão a coleção do "Jeday_Cedro"
+        targetCollectionSuffix = `${USER_DATA.nome}_${USER_DATA.cidade}`; 
+        
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-screen').style.display   = 'block';
-        document.getElementById('op-nome').innerText = dados.nomeExibido || dados.nome;
+        document.getElementById('op-nome').innerText = dados.nomeExibido || dados.usuario || dados.nome;
 
         if (USER_DATA.isMaster) {
             document.getElementById('op-assinatura').innerText = "👑 ROOT ACCESS";
@@ -604,6 +657,27 @@
         window.carregarHistorico();
         showToast("SYS CONNECTED.", "sucesso", 3000);
     }
+
+    // === CADASTRO DE NOVOS PARCEIROS ===
+    window.cadastrarUsuario = async () => {
+        const nome   = document.getElementById('reg-nome').value;
+        const user   = document.getElementById('reg-user').value;
+        const pass   = document.getElementById('reg-pass').value;
+        const cidade = document.getElementById('reg-cidade').value;
+        const preco  = parseFloat(document.getElementById('reg-preco').value || 0);
+        const zap    = document.getElementById('reg-zap').value;
+        const frota  = document.getElementById('reg-frota').value;
+
+        if (!nome || !user || !pass || !preco || !frota) return showToast("Preencha os campos obrigatórios!", "alerta");
+
+        await addDoc(collection(db, "usuarios"), {
+            nome, usuario: user, pass, cidade,
+            preco, whatsapp: zap, frota,
+            status: "pendente", validade: 0
+        });
+        showToast("REQ_SENT: Solicitação enviada! Aguarde aprovação.", "sucesso", 4000);
+        window.switchScreen('login');
+    };
 
     // === FROTA / FIDELIDADE ===
     window.setQuickTime = (v, isFid = false) => {
@@ -649,7 +723,7 @@
         const idVeiculo = gerarIDVeiculo(veiculo);
         const fidMode = isFidelidadeMode;
 
-        await addDoc(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), {
+        await addDoc(collection(db, `ativos_${targetCollectionSuffix}`), {
             veiculo, idVeiculo,
             crianca: document.getElementById('nome-crianca').value || "SYS_GUEST",
             responsavel: document.getElementById('nome-responsavel').value || "",
@@ -672,11 +746,23 @@
         window.clearFidelidade();
     };
 
+    let unsubAtivos = null; // Controle Global para desativar listen se mudar de visão
+
     function iniciarCards() {
-        onSnapshot(collection(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`), (snap) => {
-            const div    = document.getElementById('container-cards');
+        if (unsubAtivos) unsubAtivos(); // Desloga do banco anterior caso Mestre troque visão
+        
+        const div = document.getElementById('container-cards');
+        // Limpa os cards da tela para não misturar com o novo ambiente
+        document.querySelectorAll('.card').forEach(c => {
+            const id = c.id.replace('c-','');
+            if (window[`tm-${id}`]) clearInterval(window[`tm-${id}`]);
+            c.remove();
+        });
+
+        unsubAtivos = onSnapshot(collection(db, `ativos_${targetCollectionSuffix}`), (snap) => {
             const ativos = snap.docs.map(d => d.id);
 
+            // Deleta os que sumiram
             document.querySelectorAll('.card').forEach(c => {
                 const id = c.id.replace('c-','');
                 if (!ativos.includes(id)) {
@@ -697,7 +783,7 @@
                                 <div>
                                     <b style="font-family:'Orbitron',sans-serif; letter-spacing:1px">${d.veiculo}</b>
                                     <span class="id-badge">${d.idVeiculo || '—'}</span>
-                                    ${d.isFidelidade ? '<span class="fidelidade-badge">💳 FIDELIDADE</span>' : ''}<br>
+                                    ${d.isFidelidade ? '<span class="fidelidade-badge">💳 VIP</span>' : ''}<br>
                                     <small style="color:var(--text-muted)">${d.crianca} ${d.responsavel ? ' // ' + d.responsavel : ''}</small>
                                 </div>
                                 <button id="pg-${id}" onclick="event.stopPropagation(); window.pg('${id}')"
@@ -834,8 +920,9 @@
         });
     }
 
+    // === CONTROLES ATIVOS VINCULADOS AO OVERRIDE REMOTO ===
     window.add = async (id, m) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const r = doc(db, `ativos_${targetCollectionSuffix}`, id);
         const d = (await getDoc(r)).data();
         await updateDoc(r, {
             pausado: d.pausado, 
@@ -846,7 +933,7 @@
     };
 
     window.setCtrl = async (id, valor) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const r = doc(db, `ativos_${targetCollectionSuffix}`, id);
         const d = (await getDoc(r)).data();
         const decorrido   = Date.now() - d.timestamp - (d.totalMsPausado || 0);
         const minsRodados = d.modalidadeLivre ? Math.floor(decorrido / 60000) : Math.min(d.minutosContratados, Math.floor(decorrido / 60000));
@@ -858,7 +945,7 @@
     };
 
     window.addBonus = async (id) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const r = doc(db, `ativos_${targetCollectionSuffix}`, id);
         const d = (await getDoc(r)).data();
         if (d.modalidadeLivre) return showToast("Modo Livre sem limite de tempo.", "alerta");
         const bonus = Math.floor(d.minutosContratados * 0.20);
@@ -874,14 +961,14 @@
     };
 
     window.ps = async (id) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const r = doc(db, `ativos_${targetCollectionSuffix}`, id);
         const d = (await getDoc(r)).data(), now = Date.now();
         if (d.pausado) await updateDoc(r, { pausado: false, fimTimestamp: now + d.msRestantes, totalMsPausado: (d.totalMsPausado||0) + (now - d.ultimoPause) });
         else await updateDoc(r, { pausado: true, msRestantes: d.fimTimestamp - now, ultimoPause: now });
     };
 
     window.pg = async (id) => {
-        const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const r = doc(db, `ativos_${targetCollectionSuffix}`, id);
         const d = (await getDoc(r)).data();
         if (d.isFidelidade) return showToast("Uso VIP - Sem cobrança.", "alerta", 3000);
         const novo = d.pago === 'Sim' ? 'Não' : 'Sim';
@@ -891,7 +978,7 @@
 
     window.fim = async (id) => {
         if (!confirm("KILL PROCESS?")) return;
-        const r   = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
+        const r   = doc(db, `ativos_${targetCollectionSuffix}`, id);
         const d   = (await getDoc(r)).data();
         const now = Date.now();
 
@@ -922,7 +1009,7 @@
             if (observacao === null) return; 
         }
 
-        await addDoc(collection(db, `hist_${USER_DATA.nome}_${USER_DATA.cidade}`), {
+        await addDoc(collection(db, `hist_${targetCollectionSuffix}`), {
             veiculo:            d.veiculo,
             idVeiculo:          d.idVeiculo || gerarIDVeiculo(d.veiculo), 
             valor:              val,
@@ -945,6 +1032,21 @@
 
     let unsubHistorico = null;
 
+    // === GESTÃO REMOTA DO MESTRE (MUDAR AMBIENTE E VER CARDS) ===
+    window.mudarVisaoMaster = () => {
+        const val = document.getElementById('filtro-master-user').value;
+        targetCollectionSuffix = (val === 'meu') ? `${USER_DATA.nome}_${USER_DATA.cidade}` : val;
+        
+        if(val !== 'meu') {
+            document.getElementById('op-nome').innerHTML = `${USER_DATA.nome} <span style="color:var(--danger); font-size:12px; letter-spacing:1px; margin-left:5px;">[ REMOTE OVERRIDE ]</span>`;
+        } else {
+            document.getElementById('op-nome').innerText = USER_DATA.nomeExibido || USER_DATA.nome;
+        }
+
+        iniciarCards(); // Reinicia os cards olhando pro banco da cidade do usuário selecionado!
+        window.carregarHistorico();
+    };
+
     window.limparFiltroData = () => {
         document.getElementById('filtro-data').value = '';
         window.carregarHistorico();
@@ -952,13 +1054,10 @@
 
     window.carregarHistorico = () => {
         if (unsubHistorico) unsubHistorico();
-
-        const userRef  = document.getElementById('filtro-master-user').value;
-        const colName  = (USER_DATA.isMaster && userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
-        const dataF    = document.getElementById('filtro-data').value;
+        const dataF = document.getElementById('filtro-data').value;
 
         unsubHistorico = onSnapshot(
-            query(collection(db, colName), orderBy('data','desc')),
+            query(collection(db, `hist_${targetCollectionSuffix}`), orderBy('data','desc')),
             (snap) => {
                 const tb     = document.getElementById('corpo-historico');
                 const tbCtrl = document.getElementById('corpo-ctrl');
@@ -978,7 +1077,7 @@
                     const hFim    = h.horaFim ? formatarHora(h.horaFim) : formatarHora(h.data);
 
                     const idBadge = h.idVeiculo ? `<span class="id-badge">${h.idVeiculo}</span>` : '—';
-                    const btnDelHtml = USER_DATA.isMaster ? `<button style="background:var(--danger); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="window.delHistItem('${docu.id}', '${colName}')">X</button>` : '';
+                    const btnDelHtml = USER_DATA.isMaster ? `<button style="background:var(--danger); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="window.delHistItem('${docu.id}')">X</button>` : '';
 
                     const exibeAjuste = h.tempoAjustado ? `<br><small style="color:${h.tempoAjustado > 0 ? 'var(--success)' : 'var(--danger)'};">(${h.tempoAjustado > 0 ? '+' : ''}${h.tempoAjustado}m)</small>` : '';
 
@@ -993,7 +1092,7 @@
                             <td>${idBadge}</td>
                             <td style="text-align:center">${h.tempo}m ${exibeAjuste}</td>
                             <td class="valor-cell" style="text-align:right">R$ ${h.valor.toFixed(2)}</td>
-                            <td style="text-align:center"><span class="status-cell ${statusClass}" onclick="window.toggleHistPg('${docu.id}','${colName}','${h.pago}')">${h.pago}</span></td>
+                            <td style="text-align:center"><span class="status-cell ${statusClass}" onclick="window.toggleHistPg('${docu.id}','${h.pago}')">${h.pago}</span></td>
                             <td>${btnDelHtml}</td>
                         </tr>`;
 
@@ -1007,7 +1106,7 @@
                                 <td>${idBadge}</td>
                                 <td style="text-align:center; color:var(--primary); font-weight:bold">${mc} min</td>
                                 <td>${h.crianca || '—'}</td>
-                                <td><input type="text" style="width:100%; padding:4px; font-size:11px; font-family:monospace; background:rgba(0,0,0,0.5); border:1px solid var(--border); color:var(--text)" value="${h.observacao || ''}" onchange="window.updateObs('${docu.id}', '${colName}', this.value)" ${USER_DATA.isMaster ? '' : 'readonly'} placeholder="SYS.LOG"></td>
+                                <td><input type="text" style="width:100%; padding:4px; font-size:11px; font-family:monospace; background:rgba(0,0,0,0.5); border:1px solid var(--border); color:var(--text)" value="${h.observacao || ''}" onchange="window.updateObs('${docu.id}', this.value)" ${USER_DATA.isMaster ? '' : 'readonly'} placeholder="SYS.LOG"></td>
                                 <td>${btnDelHtml}</td>
                             </tr>`;
                     }
@@ -1021,35 +1120,33 @@
         );
     };
 
-    window.toggleHistPg = async (docId, colName, statusAtual) => {
+    window.toggleHistPg = async (docId, statusAtual) => {
         if (statusAtual === 'FIDELIDADE') return showToast("Card VIP travado.", "alerta");
         const novoStatus = statusAtual === 'Sim' ? 'Não' : 'Sim';
-        const snap = await getDoc(doc(db, colName, docId));
+        const snap = await getDoc(doc(db, `hist_${targetCollectionSuffix}`, docId));
         await gravarAuditoria('edicao_status', `Log update: "${snap.data()?.veiculo}" ${statusAtual} -> ${novoStatus}`, snap.data());
-        await updateDoc(doc(db, colName, docId), { pago: novoStatus });
+        await updateDoc(doc(db, `hist_${targetCollectionSuffix}`, docId), { pago: novoStatus });
     };
 
-    window.delHistItem = async (docId, colName) => {
+    window.delHistItem = async (docId) => {
         if (!USER_DATA.isMaster) return; 
         if (!confirm("SYS: CONFIRM PURGE DATA?")) return;
-        await deleteDoc(doc(db, colName, docId));
+        await deleteDoc(doc(db, `hist_${targetCollectionSuffix}`, docId));
         showToast("Block purged.", 'sucesso', 2500);
     };
 
-    window.updateObs = async (docId, colName, newObs) => {
+    window.updateObs = async (docId, newObs) => {
         if (!USER_DATA.isCliente) return; 
-        const snap = await getDoc(doc(db, colName, docId));
+        const snap = await getDoc(doc(db, `hist_${targetCollectionSuffix}`, docId));
         await gravarAuditoria('edicao_observacao', `Log rewrite: "${snap.data()?.veiculo}"`, snap.data());
-        await updateDoc(doc(db, colName, docId), { observacao: newObs });
+        await updateDoc(doc(db, `hist_${targetCollectionSuffix}`, docId), { observacao: newObs });
         showToast("Log saved.", 'sucesso', 2000);
     };
 
     window.limparHistorico = async () => {
         if (!USER_DATA.isMaster) return;
-        if (!confirm("⚠️ ROOT WARNING: DROP ALL RECORDS? MIGHT DESTROY FABRIC OF REALITY.")) return;
-        const userRef  = document.getElementById('filtro-master-user').value;
-        const colName  = (userRef && userRef !== 'meu') ? `hist_${userRef}` : `hist_${USER_DATA.nome}_${USER_DATA.cidade}`;
-        const snap     = await getDocs(query(collection(db, colName)));
+        if (!confirm("⚠️ ROOT WARNING: DROP ALL RECORDS DO AMBIENTE ATUAL?")) return;
+        const snap     = await getDocs(query(collection(db, `hist_${targetCollectionSuffix}`)));
         const batch    = writeBatch(db);
         snap.forEach(d => batch.delete(d.ref));
         await batch.commit();
@@ -1060,8 +1157,12 @@
         onSnapshot(collection(db, "usuarios"), (snap) => {
             const lst = document.getElementById('lista-usuarios-master');
             const sel = document.getElementById('filtro-master-user');
+            
+            // Preserva a seleção do Mestre caso ele já esteja conectado remotamente a alguém
+            const currentSelection = sel.value; 
+            
             lst.innerHTML = "";
-            sel.innerHTML = "<option value='meu'>[ROOT DIR]</option>";
+            sel.innerHTML = "<option value='meu'>[ROOT DIR] - MEU AMBIENTE</option>";
 
             snap.forEach(d => {
                 const u = d.data();
@@ -1101,6 +1202,10 @@
                         ${u.status !== 'ativo' ? `<button onclick="window.ativarUser('${d.id}')" style="width:100%; margin-top:8px; background:transparent; color:var(--success); border:1px solid var(--success); padding:8px; border-radius:4px; font-family:'Orbitron',sans-serif;">GRANT ACCESS</button>` : ''}
                     </div>`;
             });
+            
+            if (currentSelection && document.querySelector(`#filtro-master-user option[value="${currentSelection}"]`)) {
+                sel.value = currentSelection;
+            }
         });
     }
 
