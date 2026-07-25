@@ -306,7 +306,6 @@
             <span style="font-size:12px; color:#666">minutos</span>
         </div>
         
-        <!-- Área da Frota Atualizada com o Botão Criar Veículo -->
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:5px;">
             <span style="font-weight:bold; font-size:13px; color:#666;">Sua Frota:</span>
             <button id="btn-add-veiculo" style="display:none; background:var(--primary); color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="window.addVeiculo()">➕ CRIAR VEÍCULO</button>
@@ -317,7 +316,6 @@
     <div id="container-cards"></div>
 
     <div class="panel">
-        <!-- Total Box Atualizada com Formas de Pagamento -->
         <div class="total-box" style="display:flex; flex-direction:column; gap:12px;">
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <span>💰 FATURAMENTO (PAGO)</span>
@@ -484,7 +482,7 @@
         if (t.includes('patinete'))                         return 'PT';
         if (t.includes('quadriciclo'))                      return 'QD';
         if (t.includes('jipe'))                             return 'JP';
-        if (t.includes('kart'))                             return 'KT'; // KART INCLUÍDO AQUI
+        if (t.includes('kart'))                             return 'KT';
         if (t.includes('kidplay'))                          return 'KP';
         return nome.replace(/\s/g,'').substring(0,2).toUpperCase();
     }
@@ -577,7 +575,7 @@
             document.getElementById('btn-master-toggle').style.display = 'block';
             document.getElementById('filtro-master-user').style.display = 'block';
             document.getElementById('btn-limpar-hist').style.display = 'block';
-            document.getElementById('btn-add-veiculo').style.display = 'block'; // LIBERA BOTÃO CRIAR VEÍCULO
+            document.getElementById('btn-add-veiculo').style.display = 'block';
             iniciarMasterListeners();
         } else if (USER_DATA.isCliente) {
             document.getElementById('op-assinatura').innerText = "🛂 Operador Cliente";
@@ -607,7 +605,6 @@
         const novaFrota = USER_DATA.frota ? USER_DATA.frota + ", " + novo : novo;
         USER_DATA.frota = novaFrota;
         
-        // Se a conta for oficial do banco, salva no Firebase
         if (USER_DATA.id) {
             await updateDoc(doc(db, "usuarios", USER_DATA.id), { frota: novaFrota });
         }
@@ -622,7 +619,7 @@
         if (opt === '3') return 'Cartão de Crédito';
         if (opt === '4') return 'Cartão de Débito';
         if (opt) return 'Outros'; 
-        return null; // Caso o usuário clique em Cancelar
+        return null; 
     }
 
     window.setQuickTime = (v, isFid = false) => {
@@ -923,7 +920,6 @@
             await updateDoc(r, { pausado: true, msRestantes: d.fimTimestamp - now, ultimoPause: now });
     };
 
-    // Botão de alterar o pagamento do CARD ATIVO
     window.pg = async (id) => {
         const r = doc(db, `ativos_${USER_DATA.nome}_${USER_DATA.cidade}`, id);
         const d = (await getDoc(r)).data();
@@ -936,7 +932,7 @@
         
         if (novo === 'Sim') {
             forma = perguntarFormaPagamento();
-            if (!forma) return; // Cancela se não escolher a forma de pagamento
+            if (!forma) return;
         }
         
         await gravarAuditoria('edicao_status', `Alterou pagamento do card "${d.veiculo}" de "${d.pago}" para "${novo}"`, d);
@@ -954,6 +950,12 @@
         let minsCobrar  = d.modalidadeLivre ? minsReais : Math.min(minsReais, d.minutosContratados);
         
         let valOriginal = minsCobrar * d.precoBase;
+        
+        // NOVIDADE: Regra do Kart (Dobro do valor)
+        if (d.veiculo && d.veiculo.toLowerCase().includes('kart')) {
+            valOriginal *= 2;
+        }
+
         if (d.isFidelidade) valOriginal = 0;
 
         // Regra Kidplay
@@ -982,7 +984,7 @@
             idVeiculo:          d.idVeiculo || gerarIDVeiculo(d.veiculo), 
             valor:              val,
             pago:               d.isFidelidade ? "FIDELIDADE" : d.pago,
-            formaPagamento:     d.formaPagamento || "", // SALVA A FORMA DE PAGAMENTO AO FINALIZAR
+            formaPagamento:     d.formaPagamento || "",
             data:               now,
             horaInicio:         d.timestamp,
             horaFim:            now,
@@ -1024,7 +1026,6 @@
                 const tb     = document.getElementById('corpo-historico');
                 const tbCtrl = document.getElementById('corpo-ctrl');
                 
-                // Variáveis para somar os totais divididos
                 let total = 0, totalCtrl = 0;
                 let totPix = 0, totDin = 0, totCred = 0, totDeb = 0; 
                 
@@ -1037,7 +1038,6 @@
                     const dia = dataLocalISO(h.data); 
                     if (dataF && dataF !== dia) return;
 
-                    // Somatório dos pagamentos e divisão por tipo
                     if (h.pago === 'Sim') {
                         total += h.valor;
                         if (h.formaPagamento === 'PIX') totPix += h.valor;
@@ -1057,12 +1057,10 @@
                         `<br><small style="color:${h.tempoAjustado > 0 ? 'var(--time-feedback-add)' : 'var(--time-feedback-rem)'}; font-weight:bold;">(${h.tempoAjustado > 0 ? '+' : ''}${h.tempoAjustado}m)</small>` 
                         : '';
 
-                    // Define classe visual pelo status (Sim, Não, Fidelidade)
                     let statusClass = 'st-pend';
                     if (h.pago === 'Sim') statusClass = 'st-pago';
                     if (h.pago === 'FIDELIDADE') statusClass = 'st-fid';
                     
-                    // Mostra a forma de pagamento abaixo do status "Sim" na tabela
                     let pagoLabel = h.pago;
                     if (h.pago === 'Sim' && h.formaPagamento) {
                         pagoLabel += `<br><small style="font-size:9px; opacity:0.8;">${h.formaPagamento}</small>`;
@@ -1109,7 +1107,6 @@
                     }
                 });
 
-                // Atualiza o painel financeiro na tela
                 document.getElementById('total-valor').innerText = `R$ ${total.toFixed(2)}`;
                 document.getElementById('tot-pix').innerText = `R$ ${totPix.toFixed(2)}`;
                 document.getElementById('tot-din').innerText = `R$ ${totDin.toFixed(2)}`;
@@ -1131,7 +1128,7 @@
         
         if (novoStatus === 'Sim') {
             forma = perguntarFormaPagamento();
-            if (!forma) return; // Cancela a operação se o usuário fechar a caixa de pergunta
+            if (!forma) return; 
         }
 
         const r = doc(db, colName, docId);
